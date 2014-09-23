@@ -1,0 +1,17 @@
+.*
+!.gitignore
+
+# IntelliJ
+*.iml
+*.ipr
+*.iws
+*.sc
+
+# maven
+target/
+
+#dolphin
+.directory
+
+#local resources
+felix-framework-4.4.1
