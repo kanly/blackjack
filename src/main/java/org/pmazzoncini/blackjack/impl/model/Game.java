@@ -8,6 +8,7 @@ public class Game implements Serializable {
     private final long bet;
     private int score = 0;
     private final UUID gameId = UUID.randomUUID();
+    private GameResult gameResult;
 
     public Game(Player player, long bet) {
         this.player = player;
@@ -38,6 +39,14 @@ public class Game implements Serializable {
         return gameId;
     }
 
+    public GameResult getGameResult() {
+        return gameResult;
+    }
+
+    public void setGameResult(GameResult gameResult) {
+        this.gameResult = gameResult;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -59,5 +68,9 @@ public class Game implements Serializable {
         result = 31 * result + (int) (bet ^ (bet >>> 32));
         result = 31 * result + gameId.hashCode();
         return result;
+    }
+
+    public enum GameResult {
+        WON, TIE, LOST, RETIRED
     }
 }

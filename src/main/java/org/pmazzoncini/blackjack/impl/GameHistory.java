@@ -3,12 +3,14 @@ package org.pmazzoncini.blackjack.impl;
 import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
+import org.pmazzoncini.blackjack.impl.model.Round;
 
-public class GameData {
+public class GameHistory {
     private final HazelcastInstance hazelcast;
 
 
-    private GameData() {
+
+    private GameHistory() {
         Config cfg = new Config();
         this.hazelcast = Hazelcast.newHazelcastInstance(cfg);
 
@@ -16,12 +18,16 @@ public class GameData {
     }
 
     private static class Holder {
-        private static final GameData INSTANCE = new GameData();
+        private static final GameHistory INSTANCE = new GameHistory();
     }
 
-    public static GameData instance() {
+    public static GameHistory instance() {
         return Holder.INSTANCE;
     }
 
+    public void saveCompletedRound(Round round) {
+        hazelcast.getList("rounds").add(round);
+
+    }
 
 }

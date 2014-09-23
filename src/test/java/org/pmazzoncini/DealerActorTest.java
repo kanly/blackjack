@@ -43,6 +43,11 @@ public class DealerActorTest {
                     super.cards.add(new Card(SPADES, "2")); //dealer
                     super.cards.add(new Card(DIAMONDS, QUEEN));//dealer (21)
                 }
+
+                @Override
+                protected void saveRound() {
+
+                }
             });
             ActorRef dealer = system.actorOf(props);
 
@@ -93,6 +98,11 @@ public class DealerActorTest {
                     super.cards.add(new Card(SPADES, "2")); //dealer
                     super.cards.add(new Card(HEARTS, "8"));//dealer (19)
                 }
+
+                @Override
+                protected void saveRound() {
+
+                }
             });
             ActorRef dealer = system.actorOf(props);
 
@@ -142,6 +152,11 @@ public class DealerActorTest {
                     super.cards.add(new Card(DIAMONDS, "7")); //player (20)
                     super.cards.add(new Card(SPADES, "2")); //dealer
                     super.cards.add(new Card(HEARTS, "9"));//dealer (20)
+                }
+
+                @Override
+                protected void saveRound() {
+
                 }
             });
             ActorRef dealer = system.actorOf(props);

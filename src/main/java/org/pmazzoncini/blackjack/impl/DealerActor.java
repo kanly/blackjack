@@ -9,6 +9,7 @@ import akka.pattern.Patterns;
 import org.pmazzoncini.blackjack.impl.model.Card;
 import org.pmazzoncini.blackjack.impl.model.Game;
 import org.pmazzoncini.blackjack.impl.model.Player;
+import org.pmazzoncini.blackjack.impl.model.Round;
 import scala.PartialFunction;
 import scala.concurrent.ExecutionContextExecutor;
 import scala.concurrent.Future;
@@ -22,6 +23,8 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toSet;
 import static org.pmazzoncini.blackjack.impl.model.FrenchDeck.newDeck;
+import static org.pmazzoncini.blackjack.impl.model.Game.GameResult;
+import static org.pmazzoncini.blackjack.impl.model.Game.GameResult.*;
 
 public class DealerActor extends AbstractActor {
     private static final String START_GAME = "startGame";
@@ -33,6 +36,7 @@ public class DealerActor extends AbstractActor {
     private final List<Game> completedGames = new ArrayList<>();
     private Game myGame;
     private Game currentlyPlayedGame;
+    private Round currentRound;
     private long dealerStash = 10000L;
 
     public DealerActor() {
@@ -44,6 +48,8 @@ public class DealerActor extends AbstractActor {
 
         myGame = Game.dealer();
         myGame.cardDrawn(draw());
+
+        currentRound = new Round(self().path().name());
 
         askForBets();
 
@@ -62,7 +68,7 @@ public class DealerActor extends AbstractActor {
 
                             Game game = searchGame(player);
                             if (game != null) {
-                                gameLost(game);
+                                gameLost(game, true);
                             }
 
                             break;
@@ -82,7 +88,10 @@ public class DealerActor extends AbstractActor {
                             break;
                     }
                 }))
-                .match(AddGame.class, addGame -> currentGames.add(addGame.game))
+                .match(AddGame.class, addGame -> {
+                    currentGames.add(addGame.game);
+                    currentRound.addGame(addGame.game);
+                })
                 .matchAny(this::replyToWrongMessage)
                 .build();
 
@@ -129,8 +138,6 @@ public class DealerActor extends AbstractActor {
                                 completedGames.add(currentlyPlayedGame);
                                 nextPlayerTurn();
 
-                            } else {
-                                replyToWrongMessage(stringMsg);
                             }
                             break;
                         case DealerMessages.WANNA_PLAY:
@@ -145,7 +152,7 @@ public class DealerActor extends AbstractActor {
                                 if (game.equals(currentlyPlayedGame)) {
                                     nextPlayerTurn();
                                 }
-                                gameLost(game);
+                                gameLost(game, true);
                             }
 
                             if (currentGames.isEmpty()) {
@@ -230,12 +237,18 @@ public class DealerActor extends AbstractActor {
             dealerTurn();
             calculateResults();
 
+            saveRound();
+
             if (players.isEmpty()) {
                 become(waitingForPlayersPhase());
             } else {
                 become(betPhase());
             }
         }
+    }
+
+    protected void saveRound() {
+        GameHistory.instance().saveCompletedRound(currentRound);
     }
 
 
@@ -270,17 +283,17 @@ public class DealerActor extends AbstractActor {
 
         Map<GameResult, List<Game>> gameResults = completedGames.stream().collect(groupingBy(game -> {
             if (game.getScore() > myGame.getScore()) {
-                return GameResult.WON;
+                return WON;
             } else if (game.getScore() == myGame.getScore()) {
-                return GameResult.TIE;
+                return TIE;
             } else {
-                return GameResult.LOST;
+                return LOST;
             }
         }));
 
-        gameResults.getOrDefault(GameResult.WON, EMPTY_LIST).stream().forEach(this::gameWon);
-        gameResults.getOrDefault(GameResult.LOST, EMPTY_LIST).stream().forEach(this::gameLost);
-        gameResults.getOrDefault(GameResult.TIE, EMPTY_LIST).stream().forEach(this::gameTied);
+        gameResults.getOrDefault(WON, EMPTY_LIST).stream().forEach(this::gameWon);
+        gameResults.getOrDefault(LOST, EMPTY_LIST).stream().forEach(this::gameLost);
+        gameResults.getOrDefault(TIE, EMPTY_LIST).stream().forEach(this::gameTied);
     }
 
     private void addPlayer() {
@@ -290,6 +303,15 @@ public class DealerActor extends AbstractActor {
     }
 
     private void gameLost(Game gameLost) {
+        gameLost(gameLost, false);
+    }
+
+    private void gameLost(Game gameLost, boolean retired) {
+        if (!retired)
+            gameLost.setGameResult(LOST);
+        else
+            gameLost.setGameResult(RETIRED);
+
         dealerStash += gameLost.getBet() + gameLost.getPlayer().getPot();
         gameLost.getPlayer().setPot(0L);
         ActorRef playerRef = gameLost.getPlayer().getRef();
@@ -297,6 +319,7 @@ public class DealerActor extends AbstractActor {
     }
 
     private void gameWon(Game gameWon) {
+        gameWon.setGameResult(WON);
         dealerStash -= gameWon.getBet();
         Player player = gameWon.getPlayer();
         player.getRef().tell(new DealerMessages.YouWon(gameWon.getBet() + player.getPot()), self());
@@ -304,6 +327,7 @@ public class DealerActor extends AbstractActor {
     }
 
     private void gameTied(Game gameTied) {
+        gameTied.setGameResult(TIE);
         gameTied.getPlayer().setPot(gameTied.getPlayer().getPot() + gameTied.getBet());
         ActorRef playerRef = gameTied.getPlayer().getRef();
         playerRef.tell(DealerMessages.TIED_GAME, self());
@@ -347,8 +371,5 @@ public class DealerActor extends AbstractActor {
         }
     }
 
-    enum GameResult {
-        WON, TIE, LOST
-    }
 
 }

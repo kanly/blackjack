@@ -11,10 +11,19 @@ public class Round implements Serializable {
     private final UUID roundId = UUID.randomUUID();
     private final List<Game> games = new ArrayList<>();
     private final Date roundStartDate = new Date();
+    private final String dealer;
     private Date endDate;
+
+    public Round(String dealer) {
+        this.dealer = dealer;
+    }
 
     public UUID getRoundId() {
         return roundId;
+    }
+
+    public void addGame(Game game) {
+        games.add(game);
     }
 
     public List<Game> getGames() {
@@ -35,5 +44,22 @@ public class Round implements Serializable {
 
     public List<Player> players() {
         return games.stream().map(Game::getPlayer).collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Round round = (Round) o;
+
+        if (!roundId.equals(round.roundId)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return roundId.hashCode();
     }
 }
