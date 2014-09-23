@@ -1,10 +1,11 @@
 package org.pmazzoncini.blackjack.impl.model;
 
+import java.io.Serializable;
 import java.text.MessageFormat;
 
 import static org.pmazzoncini.blackjack.impl.model.FrenchDeck.*;
 
-public class Card {
+public class Card  implements Serializable  {
     private final String seed;
     private final String rank;
     private final int value;

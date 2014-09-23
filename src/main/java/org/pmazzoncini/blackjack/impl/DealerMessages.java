@@ -3,6 +3,8 @@ package org.pmazzoncini.blackjack.impl;
 
 import org.pmazzoncini.blackjack.impl.model.Card;
 
+import java.io.Serializable;
+
 public interface DealerMessages {
     public static final String HIT = "hit!";
     public static final String STAND = "stand!";
@@ -19,7 +21,7 @@ public interface DealerMessages {
      * This message is sent to clients that have sent an unrecognized message <br/>
      * It will contain the original message
      */
-    public static class WrongMessage {
+    public static class WrongMessage implements Serializable {
         private final Object message;
 
         public WrongMessage(Object message) {
@@ -34,7 +36,7 @@ public interface DealerMessages {
     /**
      * The Bet Message
      */
-    public static class Bet {
+    public static class Bet implements Serializable {
         private final Long bet;
 
         public Bet(Long bet) {
@@ -49,15 +51,15 @@ public interface DealerMessages {
     /**
      * Message for drawn cards
      */
-    public static class DrawnCard {
+    public static class CardDrawn implements Serializable {
         private final Card card;
         private final boolean isDealer;
 
-        public DrawnCard(Card card) {
+        public CardDrawn(Card card) {
             this(card, false);
         }
 
-        public DrawnCard(Card card, boolean isDealer) {
+        public CardDrawn(Card card, boolean isDealer) {
             this.card = card;
             this.isDealer = isDealer;
         }
@@ -67,7 +69,7 @@ public interface DealerMessages {
         }
     }
 
-    public static class YouWon {
+    public static class YouWon implements Serializable {
         private final long amount;
 
         public YouWon(long amount) {

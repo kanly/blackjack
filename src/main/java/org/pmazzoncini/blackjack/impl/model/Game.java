@@ -1,8 +1,9 @@
 package org.pmazzoncini.blackjack.impl.model;
 
+import java.io.Serializable;
 import java.util.UUID;
 
-public class Game {
+public class Game implements Serializable {
     private final Player player;
     private final long bet;
     private int score = 0;
