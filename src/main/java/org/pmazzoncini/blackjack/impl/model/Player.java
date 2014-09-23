@@ -3,7 +3,9 @@ package org.pmazzoncini.blackjack.impl.model;
 
 import akka.actor.ActorRef;
 
-public class Player {
+import java.io.Serializable;
+
+public class Player  implements Serializable {
     private final ActorRef ref;
     private long pot;
 

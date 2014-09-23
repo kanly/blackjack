@@ -218,7 +218,7 @@ public class DealerActor extends AbstractActor {
     }
 
     private void faceUpDealerCardDrawn(Set<Player> playingPlayers, Card dealerCard) {
-        DealerMessages.DrawnCard dealerCardMessage = new DealerMessages.DrawnCard(dealerCard, true);
+        DealerMessages.CardDrawn dealerCardMessage = new DealerMessages.CardDrawn(dealerCard, true);
         playingPlayers.forEach(player -> player.getRef().tell(dealerCardMessage, self()));
     }
 
@@ -249,7 +249,7 @@ public class DealerActor extends AbstractActor {
     }
 
     private void sendDrawnCardMessage(Card card, Player player) {
-        player.getRef().tell(new DealerMessages.DrawnCard(card), self());
+        player.getRef().tell(new DealerMessages.CardDrawn(card), self());
     }
 
     private void dealerTurn() {

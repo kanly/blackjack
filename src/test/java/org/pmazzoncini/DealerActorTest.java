@@ -51,21 +51,21 @@ public class DealerActorTest {
             expectMsgEquals(duration("15 seconds"), PLEASE_BET);
             getLastSender().tell(new Bet(50L), getRef());
 
-            expectMsgClass(duration("15 seconds"), DrawnCard.class);
-            expectMsgClass(duration("5 seconds"), DrawnCard.class);
-            expectMsgClass(duration("5 seconds"), DrawnCard.class);
+            expectMsgClass(duration("15 seconds"), CardDrawn.class);
+            expectMsgClass(duration("5 seconds"), CardDrawn.class);
+            expectMsgClass(duration("5 seconds"), CardDrawn.class);
             expectMsgEquals(duration("5 seconds"), YOUR_TURN);
 
             dealer.tell(HIT, getRef());
-            expectMsgClass(duration("5 seconds"), DrawnCard.class);
+            expectMsgClass(duration("5 seconds"), CardDrawn.class);
 
             dealer.tell(HIT, getRef());
-            expectMsgClass(duration("5 seconds"), DrawnCard.class);
+            expectMsgClass(duration("5 seconds"), CardDrawn.class);
 
             dealer.tell(STAND, getRef());
 
-            expectMsgClass(duration("5 seconds"), DrawnCard.class);
-            expectMsgClass(duration("5 seconds"), DrawnCard.class);
+            expectMsgClass(duration("5 seconds"), CardDrawn.class);
+            expectMsgClass(duration("5 seconds"), CardDrawn.class);
 
             expectMsgEquals(duration("5 seconds"), YOU_LOST);
 
@@ -101,21 +101,21 @@ public class DealerActorTest {
             expectMsgEquals(duration("15 seconds"), PLEASE_BET);
             getLastSender().tell(new Bet(50L), getRef());
 
-            expectMsgClass(duration("15 seconds"), DrawnCard.class);
-            expectMsgClass(duration("5 seconds"), DrawnCard.class);
-            expectMsgClass(duration("5 seconds"), DrawnCard.class);
+            expectMsgClass(duration("15 seconds"), CardDrawn.class);
+            expectMsgClass(duration("5 seconds"), CardDrawn.class);
+            expectMsgClass(duration("5 seconds"), CardDrawn.class);
             expectMsgEquals(duration("5 seconds"), YOUR_TURN);
 
             dealer.tell(HIT, getRef());
-            expectMsgClass(duration("5 seconds"), DrawnCard.class);
+            expectMsgClass(duration("5 seconds"), CardDrawn.class);
 
             dealer.tell(HIT, getRef());
-            expectMsgClass(duration("5 seconds"), DrawnCard.class);
+            expectMsgClass(duration("5 seconds"), CardDrawn.class);
 
             dealer.tell(STAND, getRef());
 
-            expectMsgClass(duration("5 seconds"), DrawnCard.class);
-            expectMsgClass(duration("5 seconds"), DrawnCard.class);
+            expectMsgClass(duration("5 seconds"), CardDrawn.class);
+            expectMsgClass(duration("5 seconds"), CardDrawn.class);
 
             expectMsgEquals(duration("5 seconds"), new YouWon(50L));
 
@@ -151,21 +151,21 @@ public class DealerActorTest {
             expectMsgEquals(duration("15 seconds"), PLEASE_BET);
             getLastSender().tell(new Bet(50L), getRef());
 
-            expectMsgClass(duration("15 seconds"), DrawnCard.class);
-            expectMsgClass(duration("5 seconds"), DrawnCard.class);
-            expectMsgClass(duration("5 seconds"), DrawnCard.class);
+            expectMsgClass(duration("15 seconds"), CardDrawn.class);
+            expectMsgClass(duration("5 seconds"), CardDrawn.class);
+            expectMsgClass(duration("5 seconds"), CardDrawn.class);
             expectMsgEquals(duration("5 seconds"), YOUR_TURN);
 
             dealer.tell(HIT, getRef());
-            expectMsgClass(duration("5 seconds"), DrawnCard.class);
+            expectMsgClass(duration("5 seconds"), CardDrawn.class);
 
             dealer.tell(HIT, getRef());
-            expectMsgClass(duration("5 seconds"), DrawnCard.class);
+            expectMsgClass(duration("5 seconds"), CardDrawn.class);
 
             dealer.tell(STAND, getRef());
 
-            expectMsgClass(duration("5 seconds"), DrawnCard.class);
-            expectMsgClass(duration("5 seconds"), DrawnCard.class);
+            expectMsgClass(duration("5 seconds"), CardDrawn.class);
+            expectMsgClass(duration("5 seconds"), CardDrawn.class);
 
             expectMsgEquals(duration("5 seconds"), TIED_GAME);
 
