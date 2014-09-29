@@ -13,16 +13,6 @@ public class Server {
         ActorSystem system = ActorSystem.create("bjackServer");
 
         system.actorOf(Props.create(DealerManager.class), MANAGER_NAME);
-
-//        ActorRef jule = Actors.system.actorOf(Props.create(PlayerActor.class, () -> new PlayerActor(Actors.getDealer())), "Jule");
-//        ActorRef harry = Actors.system.actorOf(Props.create(PlayerActor.class, () -> new PlayerActor(Actors.getDealer())), "Harry");
-//        ActorRef mark = Actors.system.actorOf(Props.create(PlayerActor.class, () -> new PlayerActor(Actors.getDealer())), "Mark");
-//        ActorRef jay = Actors.system.actorOf(Props.create(PlayerActor.class, () -> new PlayerActor(Actors.getDealer())), "Jay");
-//        ActorRef jane = Actors.system.actorOf(Props.create(PlayerActor.class, () -> new PlayerActor(Actors.getDealer())), "Jane");
-//        ActorRef mary = Actors.system.actorOf(Props.create(PlayerActor.class, () -> new PlayerActor(Actors.getDealer())), "Mary");
-//        ActorRef paul = Actors.system.actorOf(Props.create(PlayerActor.class, () -> new PlayerActor(Actors.getDealer())), "Paul");
-//        ActorRef andrew = Actors.system.actorOf(Props.create(PlayerActor.class, () -> new PlayerActor(Actors.getDealer())), "Andrew");
-
     }
 
 }

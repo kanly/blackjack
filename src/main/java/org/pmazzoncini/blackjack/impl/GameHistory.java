@@ -5,6 +5,10 @@ import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.pmazzoncini.blackjack.impl.model.Round;
 
+/**
+ * this class wraps an in memory hazelcast instance that will be used to save Game History data in the form of
+ * {@link org.pmazzoncini.blackjack.impl.model.Round} objects
+ */
 public class GameHistory {
     private final HazelcastInstance hazelcast;
 

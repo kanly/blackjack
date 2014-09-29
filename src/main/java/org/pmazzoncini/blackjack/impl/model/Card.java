@@ -5,6 +5,9 @@ import java.text.MessageFormat;
 
 import static org.pmazzoncini.blackjack.impl.model.FrenchDeck.*;
 
+/**
+ * A model representing a Card
+ */
 public class Card  implements Serializable  {
     private final String seed;
     private final String rank;

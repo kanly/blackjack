@@ -5,6 +5,10 @@ import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 
+/**
+ * Set of constants representing card values and seeds in a french deck <br>
+ * Is also included a method that create a new deck in the form of a List of cards
+ */
 public interface FrenchDeck {
     public static final String ACE = "A";
     public static final String JACK = "J";

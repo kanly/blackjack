@@ -14,8 +14,13 @@ import java.util.Random;
 import static akka.pattern.Patterns.ask;
 import static org.pmazzoncini.blackjack.impl.DealerMessages.*;
 
+/**
+ *  Actor that models a blackjack player behaviour. <br>
+ *  By default it uses same rules of the dealer (stand when points &gt;15)
+ */
 public class PlayerActor extends AbstractActor {
     private final LoggingAdapter log = Logging.getLogger(context().system(), this);
+    // the Dealer of this player table
     private final ActorRef myDealer;
     private int stash = 1000;
     private long pot = 0L;
@@ -46,7 +51,7 @@ public class PlayerActor extends AbstractActor {
                                             sender().tell(new Bet(bet), self());
                                             break;
                                         case YOUR_TURN:
-                                            log.debug("It's {} turn! He.she has {} points", myName, currentPoints);
+                                            log.debug("It's {} turn! He/she has {} points", myName, currentPoints);
                                             doPlay();
                                             break;
                                         case YOU_LOST:
@@ -85,6 +90,10 @@ public class PlayerActor extends AbstractActor {
         return myDealer;
     }
 
+    /**
+     * Reset all match related variables <br>
+     * If this player runs out of money he will stop playing and stop this actor
+     */
     private void prepareForNextRound() {
         currentPoints = 0;
         lastBet = 0L;
@@ -98,6 +107,9 @@ public class PlayerActor extends AbstractActor {
         }
     }
 
+    /**
+     * Implements default play logic
+     */
     protected void doPlay() {
         log.debug("DoPlay {} currentPoints {}", myName, currentPoints);
         if (currentPoints < 16) {
@@ -110,6 +122,10 @@ public class PlayerActor extends AbstractActor {
         }
     }
 
+    /**
+     * The logic to be used when a card is received
+     * @return {@link akka.dispatch.OnSuccess} object that handles
+     */
     private OnSuccess<Object> onReceiveCard() {
         return new OnSuccess<Object>() {
             @Override
@@ -126,6 +142,10 @@ public class PlayerActor extends AbstractActor {
         };
     }
 
+    /**
+     * Handles the card drawn event
+     * @param cardDrawn
+     */
     private void cardDrawn(CardDrawn cardDrawn) {
         if (!cardDrawn.isDealer()) {
             log.debug("player {} received a {}", myName, cardDrawn.getCard());

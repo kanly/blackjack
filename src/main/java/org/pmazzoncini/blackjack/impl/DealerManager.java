@@ -7,6 +7,9 @@ import akka.japi.pf.ReceiveBuilder;
 
 import java.io.Serializable;
 
+/**
+ * DealerManager should return a ref to an available dealer to requester. At the moment it returns always the same dealer
+ */
 public class DealerManager extends AbstractActor {
 
 

@@ -5,6 +5,9 @@ import akka.actor.ActorRef;
 
 import java.io.Serializable;
 
+/**
+ * A model representing a player
+ */
 public class Player  implements Serializable {
     private final ActorRef ref;
     private long pot;

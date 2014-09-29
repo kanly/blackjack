@@ -28,6 +28,26 @@ import static org.pmazzoncini.blackjack.impl.model.FrenchDeck.newDeck;
 import static org.pmazzoncini.blackjack.impl.model.Game.GameResult;
 import static org.pmazzoncini.blackjack.impl.model.Game.GameResult.*;
 
+/**
+ * Actor tha models a dealer behaviour. <br>
+ * The dealer behave differently for each game phase
+ * <ul>
+ * <li>
+ * waiting for player phase: In this phase the dealer waits for players' subscription<br>
+ * When a subscription arrives switches to bet phase.</li>
+ * <li>
+ * <b>bet phase</b>: In this phase the dealer asks players for bets, waiting some seconds. <br>
+ * When bets are received the dealer switches to <b>in game phase</b>. <br>
+ * If no bets are received and there are subscribed players he restarts <b>bet phase</b><br>
+ * If no bets are received and there aren't any subscribed player he switches to <b>waiting for player phase</b>.
+ * </li>
+ * <li>
+ * <b>in game phase</b>: In this phase the dealer deals cards to every player and himself. <br>
+ * Players will play one at a time. When all players have played the dealer plays then if the are subscribed players he switches to <b>bet phase</b>
+ * otherwise he switches to <b>waiting for player phase</b>.
+ * </li>
+ * </ul>
+ */
 public class DealerActor extends AbstractActor {
     private final LoggingAdapter log = Logging.getLogger(context().system(), this);
     private static final String START_GAME = "startGame";
@@ -54,6 +74,10 @@ public class DealerActor extends AbstractActor {
         myName = self().path().name();
     }
 
+    /**
+     *
+     * @return the bet phase {@link scala.PartialFunction} that models the actor behaviour
+     */
     private PartialFunction<Object, BoxedUnit> betPhase() {
         log.info("dealer {} entering in betPhase", myName);
         currentGames.clear();
@@ -116,6 +140,10 @@ public class DealerActor extends AbstractActor {
 
     }
 
+    /**
+     *
+     * @return the in game phase {@link scala.PartialFunction} that models the actor behaviour
+     */
     private PartialFunction<Object, BoxedUnit> inGamePhase() {
         // distribuire una carta per ogni game in connection order
         log.info("dealer {} entering in gamePhase", myName);
@@ -204,6 +232,10 @@ public class DealerActor extends AbstractActor {
                 .build();
     }
 
+    /**
+     *
+     * @return the waiting for player phase {@link scala.PartialFunction} that models the actor behaviour
+     */
     private PartialFunction<Object, BoxedUnit> waitingForPlayersPhase() {
         log.info("dealer {} entering in waitingForPlayersPhase", myName);
         return ReceiveBuilder
@@ -280,6 +312,9 @@ public class DealerActor extends AbstractActor {
         }
     }
 
+    /**
+     * Save round data for future reference
+     */
     protected void saveRound() {
         GameHistory.instance().saveCompletedRound(currentRound);
     }

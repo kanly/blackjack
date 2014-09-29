@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * A model representing a game round.
+ */
 public class Round implements Serializable {
     private final UUID roundId = UUID.randomUUID();
     private final List<Game> games = new ArrayList<>();
