@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true">
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!-- <pattern>%highlight(%-5p) [%d{ISO8601}] %X{akkaSource} %c: %m%n%ex</pattern> -->
+            <pattern>%-60.60(%highlight(%-5p) %X{akkaSource}): %m%n%ex</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="org.pmazzoncini.blackjack" level="TRACE"/>
+
+    <root level="DEBUG">
+        <appender-ref ref="console"/>
+    </root>
+</configuration>

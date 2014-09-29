@@ -8,13 +8,9 @@ import org.pmazzoncini.blackjack.impl.model.Round;
 public class GameHistory {
     private final HazelcastInstance hazelcast;
 
-
-
     private GameHistory() {
         Config cfg = new Config();
         this.hazelcast = Hazelcast.newHazelcastInstance(cfg);
-
-
     }
 
     private static class Holder {
@@ -27,7 +23,6 @@ public class GameHistory {
 
     public void saveCompletedRound(Round round) {
         hazelcast.getList("rounds").add(round);
-
     }
 
 }

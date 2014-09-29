@@ -36,13 +36,14 @@ public class PlayerActorTest {
 
     @Test
     public void testBet() throws Exception {
+        new JavaTestKit(system) {{
+            Props props = Props.create(PlayerActor.class, () -> new PlayerActor(getTestActor()));
+            ActorRef player = system.actorOf(props, "John_I");
 
-        Props props = Props.create(PlayerActor.class);
-        ActorRef player = system.actorOf(props);
-
-        Future<Object> ask = ask(player, PLEASE_BET, 2000L);
-        Object result = Await.result(ask, Duration.create(2L, SECONDS));
-        assertTrue(result instanceof DealerMessages.Bet);
+            Future<Object> ask = ask(player, PLEASE_BET, 2000L);
+            Object result = Await.result(ask, Duration.create(2L, SECONDS));
+            assertTrue(result instanceof DealerMessages.Bet);
+        }};
 
 
     }
@@ -50,32 +51,27 @@ public class PlayerActorTest {
     @Test
     public void testPlayBehavior() {
         new JavaTestKit(system) {{
-            Props props = Props.create(PlayerActor.class, () -> new PlayerActor() {
-                @Override
-                protected ActorRef dealer() {
-                    return getTestActor();
-                }
-            });
-            ActorRef player = system.actorOf(props);
+            Props props = Props.create(PlayerActor.class, () -> new PlayerActor(getTestActor()));
+            ActorRef player = system.actorOf(props, "John_II");
             expectMsgEquals(WANNA_PLAY);
 
             player.tell(YOUR_TURN, getTestActor());
-            expectMsgEquals(HIT);
+            expectMsgEquals(DealerMessages.DealerRequest.hit(player));
 
             Card nextCard = new Card(FrenchDeck.DIAMONDS, "5");
             //send(getLastSender(),new CardDrawn(nextCard));
             reply(new CardDrawn(nextCard));
-            expectMsgEquals(HIT);
+            expectMsgEquals(DealerMessages.DealerRequest.hit(player));
 
             nextCard = new Card(FrenchDeck.DIAMONDS, "9");
             //send(getLastSender(),new CardDrawn(nextCard));
             reply(new CardDrawn(nextCard));
-            expectMsgEquals(HIT);
+            expectMsgEquals(DealerMessages.DealerRequest.hit(player));
 
             nextCard = new Card(FrenchDeck.DIAMONDS, "4");
             //send(getLastSender(),new CardDrawn(nextCard));
             reply(new CardDrawn(nextCard));
-            expectMsgEquals(STAND);
+            expectMsgEquals(DealerMessages.DealerRequest.stand(player));
 
 
         }};

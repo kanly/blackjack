@@ -4,6 +4,8 @@ import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.dispatch.OnFailure;
 import akka.dispatch.OnSuccess;
+import akka.event.Logging;
+import akka.event.LoggingAdapter;
 import akka.japi.pf.ReceiveBuilder;
 import akka.pattern.Patterns;
 import org.pmazzoncini.blackjack.impl.model.Card;
@@ -27,6 +29,7 @@ import static org.pmazzoncini.blackjack.impl.model.Game.GameResult;
 import static org.pmazzoncini.blackjack.impl.model.Game.GameResult.*;
 
 public class DealerActor extends AbstractActor {
+    private final LoggingAdapter log = Logging.getLogger(context().system(), this);
     private static final String START_GAME = "startGame";
     public static final ArrayList<Game> EMPTY_LIST = new ArrayList<>();
 
@@ -38,20 +41,35 @@ public class DealerActor extends AbstractActor {
     private Game currentlyPlayedGame;
     private Round currentRound;
     private long dealerStash = 10000L;
+    private String myName;
 
     public DealerActor() {
         receive(waitingForPlayersPhase());
     }
 
+    @Override
+    public void preStart() throws Exception {
+        super.preStart();
+
+        myName = self().path().name();
+    }
+
     private PartialFunction<Object, BoxedUnit> betPhase() {
+        log.info("dealer {} entering in betPhase", myName);
+        currentGames.clear();
+        completedGames.clear();
         newShuffledDeck();
 
         myGame = Game.dealer();
-        myGame.cardDrawn(draw());
+        Card draw = draw();
+        log.debug("Drawn face down card for dealer {}: {}", myName, draw);
+        myGame.cardDrawn(draw);
 
         currentRound = new Round(self().path().name());
 
         askForBets();
+
+        log.debug("dealer {} asked for bets and waits 5 seconds before starting game", myName);
 
         startGameAfter(5, SECONDS);
 
@@ -89,6 +107,7 @@ public class DealerActor extends AbstractActor {
                     }
                 }))
                 .match(AddGame.class, addGame -> {
+                    log.debug("Adding game {} for player {}", addGame.game.getGameId(), addGame.game.getPlayerName());
                     currentGames.add(addGame.game);
                     currentRound.addGame(addGame.game);
                 })
@@ -99,52 +118,30 @@ public class DealerActor extends AbstractActor {
 
     private PartialFunction<Object, BoxedUnit> inGamePhase() {
         // distribuire una carta per ogni game in connection order
+        log.info("dealer {} entering in gamePhase", myName);
         Set<Player> playingPlayers = currentGames.stream().map(Game::getPlayer).collect(toSet());
 
+        log.debug("dealer {} dealing a faceUp card to every playing player", myName);
         dealACardToEveryPlayingPlayer(playingPlayers);
 
         Card dealerCard = draw();
         myGame.cardDrawn(dealerCard);
+        log.debug("dealer {} drawn a face up card {}", myName, dealerCard);
         faceUpDealerCardDrawn(playingPlayers, dealerCard);
 
+        log.debug("dealer {} dealing a faceUp card to every playing player", myName);
         dealACardToEveryPlayingPlayer(playingPlayers);
 
         nextPlayerTurn();
         return ReceiveBuilder
                 .match(String.class, stringMsg -> {
                     switch (stringMsg) {
-                        case DealerMessages.HIT:
-                            if (sender().equals(currentlyPlayedGame.getPlayer().getRef())) {
-                                Card card = draw();
-                                currentlyPlayedGame.cardDrawn(card);
-                                sendDrawnCardMessage(card, currentlyPlayedGame.getPlayer());
-                                if (currentlyPlayedGame.getScore() > 21) {
-                                    gameLost(currentlyPlayedGame);
-
-                                    nextPlayerTurn();
-
-                                } else if (currentlyPlayedGame.getScore() == 21) {
-                                    currentlyPlayedGame.getPlayer().getRef().tell(DealerMessages.MUST_STAND, self());
-                                    completedGames.add(currentlyPlayedGame);
-
-                                    nextPlayerTurn();
-                                }
-                            } else {
-                                replyToWrongMessage(stringMsg);
-                            }
-                            break;
-                        case DealerMessages.STAND:
-                            if (sender().equals(currentlyPlayedGame.getPlayer().getRef())) {
-                                completedGames.add(currentlyPlayedGame);
-                                nextPlayerTurn();
-
-                            }
-                            break;
                         case DealerMessages.WANNA_PLAY:
                             addPlayer();
                             break;
                         case DealerMessages.STOP_PLAY:
                             Player player = searchPlayer(sender());
+                            log.info("player {} is stopping playing", player.getRef().path().name());
                             retire(player);
                             Game game = searchGame(player);
 
@@ -168,11 +165,47 @@ public class DealerActor extends AbstractActor {
                             break;
                     }
                 })
+                .match(DealerMessages.DealerRequest.class, request -> {
+                    switch (request.request()) {
+                        case DealerMessages.DealerRequest.HIT:
+
+                            log.debug("dealer {}, received an HIT message", myName);
+
+                            if (request.player().equals(currentlyPlayedGame.getPlayer().getRef())) {
+                                Card card = draw();
+                                currentlyPlayedGame.cardDrawn(card);
+                                sendDrawnCardMessage(card);
+                                if (currentlyPlayedGame.getScore() > 21) {
+                                    gameLost(currentlyPlayedGame);
+
+                                    nextPlayerTurn();
+
+                                } else if (currentlyPlayedGame.getScore() == 21) {
+                                    currentlyPlayedGame.getPlayer().getRef().tell(DealerMessages.MUST_STAND, self());
+                                    completedGames.add(currentlyPlayedGame);
+
+                                    nextPlayerTurn();
+                                }
+                            } else {
+                                log.warning("Hit received from an unexepcted actor {}", sender().path().toSerializationFormat());
+                                replyToWrongMessage(request);
+                            }
+                            break;
+                        case DealerMessages.DealerRequest.STAND:
+                            if (request.player().equals(currentlyPlayedGame.getPlayer().getRef())) {
+                                completedGames.add(currentlyPlayedGame);
+                                nextPlayerTurn();
+
+                            }
+                            break;
+                    }
+                })
                 .matchAny(this::replyToWrongMessage)
                 .build();
     }
 
     private PartialFunction<Object, BoxedUnit> waitingForPlayersPhase() {
+        log.info("dealer {} entering in waitingForPlayersPhase", myName);
         return ReceiveBuilder
                 .match(String.class, stringMsg -> {
                     switch (stringMsg) {
@@ -256,12 +289,17 @@ public class DealerActor extends AbstractActor {
         // Using players to maintain connection order while dealing cards
         players.stream().filter(playingPlayers::contains).map(this::searchGame).forEach(game -> {
             Card card = draw();
+            log.debug("Dealer {} drawn card [{}] for player {} in game {}", myName, card, game.getPlayerName(), game.getGameId());
             game.cardDrawn(card);
-            sendDrawnCardMessage(card, game.getPlayer());
+            sendDrawnCardMessageTo(card, game.getPlayer());
         });
     }
 
-    private void sendDrawnCardMessage(Card card, Player player) {
+    private void sendDrawnCardMessage(Card card) {
+        sender().tell(new DealerMessages.CardDrawn(card), self());
+    }
+
+    private void sendDrawnCardMessageTo(Card card, Player player) {
         player.getRef().tell(new DealerMessages.CardDrawn(card), self());
     }
 
@@ -298,6 +336,7 @@ public class DealerActor extends AbstractActor {
 
     private void addPlayer() {
         ActorRef sender = sender();
+        log.debug("Adding player {} for next game with {} dealer", sender.path().name(), myName);
         players.add(new Player(sender));
 
     }
@@ -307,11 +346,13 @@ public class DealerActor extends AbstractActor {
     }
 
     private void gameLost(Game gameLost, boolean retired) {
-        if (!retired)
+        if (!retired) {
+            log.debug("player {} has lost game [{}] with dealer {}", gameLost.getPlayerName(), gameLost.getGameId(), myName);
             gameLost.setGameResult(LOST);
-        else
+        } else {
+            log.debug("player {} has retired from game [{}] with dealer {}", gameLost.getPlayerName(), gameLost.getGameId(), myName);
             gameLost.setGameResult(RETIRED);
-
+        }
         dealerStash += gameLost.getBet() + gameLost.getPlayer().getPot();
         gameLost.getPlayer().setPot(0L);
         ActorRef playerRef = gameLost.getPlayer().getRef();
@@ -319,6 +360,7 @@ public class DealerActor extends AbstractActor {
     }
 
     private void gameWon(Game gameWon) {
+        log.debug("player {} has won game [{}] with dealer {}", gameWon.getPlayerName(), gameWon.getGameId(), myName);
         gameWon.setGameResult(WON);
         dealerStash -= gameWon.getBet();
         Player player = gameWon.getPlayer();
@@ -327,6 +369,7 @@ public class DealerActor extends AbstractActor {
     }
 
     private void gameTied(Game gameTied) {
+        log.debug("player {} has tied game [{}] with dealer {}", gameTied.getPlayerName(), gameTied.getGameId(), myName);
         gameTied.setGameResult(TIE);
         gameTied.getPlayer().setPot(gameTied.getPlayer().getPot() + gameTied.getBet());
         ActorRef playerRef = gameTied.getPlayer().getRef();

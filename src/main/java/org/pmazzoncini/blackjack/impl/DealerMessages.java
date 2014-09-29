@@ -1,13 +1,13 @@
 package org.pmazzoncini.blackjack.impl;
 
 
+import akka.actor.ActorRef;
 import org.pmazzoncini.blackjack.impl.model.Card;
 
 import java.io.Serializable;
 
 public interface DealerMessages {
-    public static final String HIT = "hit!";
-    public static final String STAND = "stand!";
+
     public static final String MUST_STAND = "mustStand";
     public static final String YOUR_TURN = "yourTurn";
     public static final String WANNA_PLAY = "wantToPlay";
@@ -16,6 +16,55 @@ public interface DealerMessages {
     public static final String YOU_LOST = "youLost";
     public static final String TIED_GAME = "tied_game";
 
+
+    public static class DealerRequest implements Serializable {
+        public static final String HIT = "hit!";
+        public static final String STAND = "stand!";
+
+        private final String request;
+        private final ActorRef player;
+
+        private DealerRequest(String request, ActorRef player) {
+            this.request = request;
+            this.player = player;
+        }
+
+        public static DealerRequest hit(ActorRef player) {
+            return new DealerRequest(HIT, player);
+        }
+
+        public static DealerRequest stand(ActorRef player) {
+            return new DealerRequest(STAND, player);
+        }
+
+        public String request() {
+            return request;
+        }
+
+        public ActorRef player() {
+            return player;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            DealerRequest that = (DealerRequest) o;
+
+            if (!player.equals(that.player)) return false;
+            if (!request.equals(that.request)) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = request.hashCode();
+            result = 31 * result + player.hashCode();
+            return result;
+        }
+    }
 
     /**
      * This message is sent to clients that have sent an unrecognized message <br/>
@@ -37,13 +86,13 @@ public interface DealerMessages {
      * The Bet Message
      */
     public static class Bet implements Serializable {
-        private final Long bet;
+        private final int bet;
 
-        public Bet(Long bet) {
+        public Bet(int bet) {
             this.bet = bet;
         }
 
-        public Long getBet() {
+        public int getBet() {
             return bet;
         }
     }
@@ -66,6 +115,10 @@ public interface DealerMessages {
 
         public Card getCard() {
             return card;
+        }
+
+        public boolean isDealer() {
+            return isDealer;
         }
     }
 

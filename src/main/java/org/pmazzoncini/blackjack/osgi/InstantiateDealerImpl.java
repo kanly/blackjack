@@ -1,8 +1,9 @@
-package org.pmazzoncini.blackjack.impl;
+package org.pmazzoncini.blackjack.osgi;
 
 import akka.actor.ActorSystem;
 import akka.actor.Props;
-import org.pmazzoncini.blackjack.api.InstantiateDealer;
+import org.pmazzoncini.blackjack.osgi.api.InstantiateDealer;
+import org.pmazzoncini.blackjack.impl.DealerActor;
 
 
 public class InstantiateDealerImpl implements InstantiateDealer {

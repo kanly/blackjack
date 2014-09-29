@@ -43,6 +43,10 @@ public class Game implements Serializable {
         return gameResult;
     }
 
+    public String getPlayerName() {
+        return  player.getRef().path().name();
+    }
+
     public void setGameResult(GameResult gameResult) {
         this.gameResult = gameResult;
     }

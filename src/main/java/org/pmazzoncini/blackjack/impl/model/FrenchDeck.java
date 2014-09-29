@@ -5,7 +5,7 @@ import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 
-public class FrenchDeck {
+public interface FrenchDeck {
     public static final String ACE = "A";
     public static final String JACK = "J";
     public static final String QUEEN = "Q";

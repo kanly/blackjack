@@ -30,6 +30,16 @@
             <version>${akka.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-slf4j_2.11</artifactId>
+            <version>${akka.version}</version>
+        </dependency>
+       <!-- <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-osgi_2.11</artifactId>
+            <version>${akka.version}</version>
+        </dependency>-->
+        <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.framework</artifactId>
             <version>4.4.1</version>
@@ -40,6 +50,24 @@
             <version>3.2.5</version>
         </dependency>
 
+        <!-- LOG -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.7</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>1.1.2</version>
+        </dependency>
+
+        <!-- TEST -->
         <dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-testkit_2.11</artifactId>
@@ -62,10 +90,12 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Export-Package>org.pmazzoncini.blackjack.api</Export-Package>
+                        <Export-Package>org.pmazzoncini.blackjack.osgi.api</Export-Package>
                         <Private-Package>org.pmazzoncini.blackjack.impl</Private-Package>
+                        <Bundle-Activator>org.pmazzoncini.blackjack.osgi.Activator</Bundle-Activator>
                     </instructions>
                 </configuration>
+                <version>2.5.3</version>
             </plugin>
         </plugins>
     </build>
