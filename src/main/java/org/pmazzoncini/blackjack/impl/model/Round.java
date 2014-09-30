@@ -16,6 +16,7 @@ public class Round implements Serializable {
     private final Date roundStartDate = new Date();
     private final String dealer;
     private Date endDate;
+    private int dealerScore;
 
     public Round(String dealer) {
         this.dealer = dealer;
@@ -49,6 +50,14 @@ public class Round implements Serializable {
         return games.stream().map(Game::getPlayer).collect(Collectors.toList());
     }
 
+    public int getDealerScore() {
+        return dealerScore;
+    }
+
+    public void setDealerScore(int dealerScore) {
+        this.dealerScore = dealerScore;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -64,5 +73,20 @@ public class Round implements Serializable {
     @Override
     public int hashCode() {
         return roundId.hashCode();
+    }
+
+    @Override
+    public String toString() {
+
+        String gamesString = games.parallelStream().map(Game::toString).collect(Collectors.joining("; "));
+
+        return "Round{" +
+                "roundId=" + roundId +
+                ", games=" + gamesString +
+                ", roundStartDate=" + roundStartDate +
+                ", dealer='" + dealer + '\'' +
+                ", endDate=" + endDate + '\'' +
+                ", dealerScore=" + dealerScore  +
+                '}';
     }
 }

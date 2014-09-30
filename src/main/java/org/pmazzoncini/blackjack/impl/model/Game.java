@@ -4,14 +4,19 @@ import java.io.Serializable;
 import java.util.UUID;
 
 public class Game implements Serializable {
-    private final Player player;
-    private final long bet;
+    private transient Player player;
+    private String playerName;
+    private long bet;
     private int score = 0;
     private final UUID gameId = UUID.randomUUID();
     private GameResult gameResult;
 
+    public Game() {
+    }
+
     public Game(Player player, long bet) {
         this.player = player;
+        this.playerName = player.getRef().path().name();
         this.bet = bet;
     }
 
@@ -32,7 +37,7 @@ public class Game implements Serializable {
     }
 
     public static Game dealer() {
-        return new Game(null, 0L);
+        return new Game();
     }
 
     public UUID getGameId() {
@@ -44,7 +49,11 @@ public class Game implements Serializable {
     }
 
     public String getPlayerName() {
-        return  player.getRef().path().name();
+        return playerName;
+    }
+
+    public void setPlayerName(String name) {
+        playerName = name;
     }
 
     public void setGameResult(GameResult gameResult) {
@@ -60,21 +69,51 @@ public class Game implements Serializable {
 
         if (bet != game.bet) return false;
         if (score != game.score) return false;
-        if (!gameId.equals(game.gameId)) return false;
-        if (!player.equals(game.player)) return false;
+        if (gameId != null ? !gameId.equals(game.gameId) : game.gameId != null) return false;
+        if (gameResult != game.gameResult) return false;
+        if (player != null ? !player.equals(game.player) : game.player != null) return false;
+        if (playerName != null ? !playerName.equals(game.playerName) : game.playerName != null) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = player.hashCode();
+        int result = player != null ? player.hashCode() : 0;
+        result = 31 * result + (playerName != null ? playerName.hashCode() : 0);
         result = 31 * result + (int) (bet ^ (bet >>> 32));
-        result = 31 * result + gameId.hashCode();
+        result = 31 * result + score;
+        result = 31 * result + (gameId != null ? gameId.hashCode() : 0);
+        result = 31 * result + (gameResult != null ? gameResult.hashCode() : 0);
         return result;
     }
 
-    public enum GameResult {
+    @Override
+    public String toString() {
+        return "Game{" +
+                "player=" + playerName +
+                ", bet=" + bet +
+                ", score=" + score +
+                ", gameId=" + gameId +
+                ", gameResult=" + gameResult +
+                '}';
+    }
+
+    public static int scoreComparator(Game aGame, Game otherGame) {
+        int compare = aGame.getScore() - otherGame.getScore();
+        if (compare == 0) {
+            int idCompare = aGame.getGameId().compareTo(otherGame.getGameId());
+            if (idCompare > 0) {
+                compare += 1;
+            }
+            if (idCompare < 0) {
+                compare -= 1;
+            }
+        }
+        return compare;
+    }
+
+    public enum GameResult implements Serializable {
         WON, TIE, LOST, RETIRED
     }
 }

@@ -10,6 +10,7 @@ import org.pmazzoncini.blackjack.impl.model.Round;
  * {@link org.pmazzoncini.blackjack.impl.model.Round} objects
  */
 public class GameHistory {
+    public static final String ROUNDS_LIST_KEY = "rounds";
     private final HazelcastInstance hazelcast;
 
     private GameHistory() {
@@ -26,7 +27,7 @@ public class GameHistory {
     }
 
     public void saveCompletedRound(Round round) {
-        hazelcast.getList("rounds").add(round);
+        hazelcast.getList(ROUNDS_LIST_KEY).add(round);
     }
 
 }

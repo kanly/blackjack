@@ -55,7 +55,7 @@ public class DealerActor extends AbstractActor {
 
     protected final List<Card> cards = new ArrayList<>();
     private final List<Player> players = new ArrayList<>();
-    private final TreeSet<Game> currentGames = new TreeSet<>((game, otherGame) -> game.getScore() - otherGame.getScore());
+    private final TreeSet<Game> currentGames = new TreeSet<>(Game::scoreComparator);
     private final List<Game> completedGames = new ArrayList<>();
     private Game myGame;
     private Game currentlyPlayedGame;
@@ -75,11 +75,10 @@ public class DealerActor extends AbstractActor {
     }
 
     /**
-     *
      * @return the bet phase {@link scala.PartialFunction} that models the actor behaviour
      */
     private PartialFunction<Object, BoxedUnit> betPhase() {
-        log.info("dealer {} entering in betPhase", myName);
+        log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> dealer {} entering in betPhase <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<", myName);
         currentGames.clear();
         completedGames.clear();
         newShuffledDeck();
@@ -141,7 +140,6 @@ public class DealerActor extends AbstractActor {
     }
 
     /**
-     *
      * @return the in game phase {@link scala.PartialFunction} that models the actor behaviour
      */
     private PartialFunction<Object, BoxedUnit> inGamePhase() {
@@ -233,7 +231,6 @@ public class DealerActor extends AbstractActor {
     }
 
     /**
-     *
      * @return the waiting for player phase {@link scala.PartialFunction} that models the actor behaviour
      */
     private PartialFunction<Object, BoxedUnit> waitingForPlayersPhase() {
@@ -295,7 +292,9 @@ public class DealerActor extends AbstractActor {
     }
 
     private void nextPlayerTurn() {
+        log.debug("currentGames size: {}", currentGames.size());
         currentlyPlayedGame = currentGames.pollFirst();
+        log.debug("Currently played game: {}, currentGames remaining size: {}", currentlyPlayedGame, currentGames.size());
         if (currentlyPlayedGame != null) {
             currentlyPlayedGame.getPlayer().getRef().tell(DealerMessages.YOUR_TURN, self());
         } else {
@@ -316,6 +315,9 @@ public class DealerActor extends AbstractActor {
      * Save round data for future reference
      */
     protected void saveRound() {
+        currentRound.setEndDate(new Date());
+        currentRound.setDealerScore(myGame.getScore());
+        log.debug("Saving round: {}", currentRound);
         GameHistory.instance().saveCompletedRound(currentRound);
     }
 
@@ -399,7 +401,7 @@ public class DealerActor extends AbstractActor {
         gameWon.setGameResult(WON);
         dealerStash -= gameWon.getBet();
         Player player = gameWon.getPlayer();
-        player.getRef().tell(new DealerMessages.YouWon(gameWon.getBet() + player.getPot()), self());
+        player.getRef().tell(new DealerMessages.YouWon(gameWon.getBet() * 2 + player.getPot()), self());
         player.setPot(0L);
     }
 

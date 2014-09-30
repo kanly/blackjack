@@ -15,14 +15,14 @@ import static akka.pattern.Patterns.ask;
 import static org.pmazzoncini.blackjack.impl.DealerMessages.*;
 
 /**
- *  Actor that models a blackjack player behaviour. <br>
- *  By default it uses same rules of the dealer (stand when points &gt;15)
+ * Actor that models a blackjack player behaviour. <br>
+ * By default it uses same rules of the dealer (stand when points &gt;15)
  */
 public class PlayerActor extends AbstractActor {
     private final LoggingAdapter log = Logging.getLogger(context().system(), this);
     // the Dealer of this player table
     private final ActorRef myDealer;
-    private int stash = 1000;
+    private long stash = 1000;
     private long pot = 0L;
     private int currentPoints = 0;
     private long lastBet = 0L;
@@ -45,7 +45,7 @@ public class PlayerActor extends AbstractActor {
                                     switch (msg) {
                                         case PLEASE_BET:
                                             log.debug("dealer has asked {} a bet", myName);
-                                            int bet = rnd.nextInt(stash);
+                                            int bet = rnd.nextInt((int)stash / 2);
                                             log.debug("{} bets {}", myName, bet);
                                             stash -= bet;
                                             sender().tell(new Bet(bet), self());
@@ -70,9 +70,9 @@ public class PlayerActor extends AbstractActor {
                         )
                         .match(CardDrawn.class, this::cardDrawn)
                         .match(YouWon.class, message -> {
-                            stash += message.getAmount();
+                            stash = stash + message.getAmount();
 
-                            log.debug("{} has won a game, now his stash is {}", myName, stash);
+                            log.debug("{} has won a game, winning {} now his stash is {}", myName, message.getAmount(), stash);
 
                             prepareForNextRound();
                         })
@@ -124,6 +124,7 @@ public class PlayerActor extends AbstractActor {
 
     /**
      * The logic to be used when a card is received
+     *
      * @return {@link akka.dispatch.OnSuccess} object that handles
      */
     private OnSuccess<Object> onReceiveCard() {
@@ -144,6 +145,7 @@ public class PlayerActor extends AbstractActor {
 
     /**
      * Handles the card drawn event
+     *
      * @param cardDrawn
      */
     private void cardDrawn(CardDrawn cardDrawn) {
