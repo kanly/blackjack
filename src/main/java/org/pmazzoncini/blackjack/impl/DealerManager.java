@@ -4,7 +4,6 @@ import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.japi.pf.ReceiveBuilder;
-
 import java.io.Serializable;
 
 /**
@@ -12,18 +11,21 @@ import java.io.Serializable;
  */
 public class DealerManager extends AbstractActor {
 
+    final ActorRef aDealer;
 
     public DealerManager() {
-        final ActorRef aDealer = context().system().actorOf(Props.create(DealerActor.class), "Martin");
-
-        receive(ReceiveBuilder
-                .match(GetAvailableDealer.class, m -> sender().tell(new AvailableDealer(aDealer), self()))
-                .build()
-        );
+        aDealer = context().system().actorOf(Props.create(DealerActor.class), "Martin");
     }
 
+    @Override
+    public Receive createReceive() {
+        return ReceiveBuilder.create()
+            .match(GetAvailableDealer.class, m -> sender().tell(new AvailableDealer(aDealer), self()))
+            .build();
+    }
 
     public static class GetAvailableDealer implements Serializable {
+
         public static GetAvailableDealer instance = new GetAvailableDealer();
 
         private GetAvailableDealer() {
@@ -31,6 +33,7 @@ public class DealerManager extends AbstractActor {
     }
 
     public static class AvailableDealer implements Serializable {
+
         public final ActorRef dealer;
 
         private AvailableDealer(ActorRef dealer) {

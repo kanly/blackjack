@@ -11,10 +11,10 @@ import org.pmazzoncini.blackjack.impl.DealerManager;
 import org.pmazzoncini.blackjack.impl.PlayerActor;
 import scala.concurrent.Future;
 
-public class Client {
+public class AnotherClient {
 
     public static void main(String[] args) {
-        ActorSystem system = ActorSystem.create("aClient", ConfigFactory.load("application-client.conf"));
+        ActorSystem system = ActorSystem.create("anotherClient", ConfigFactory.load("application-another-client.conf"));
 
         ActorSelection dealerManager = system.actorSelection("akka.tcp://bjackServer@127.0.0.1:2552/user/" + Server.MANAGER_NAME);
         Future<Object> futureDealer = Patterns.ask(dealerManager, DealerManager.GetAvailableDealer.instance, 5000L);
@@ -25,11 +25,10 @@ public class Client {
                 if (result instanceof DealerManager.AvailableDealer) {
                     ActorRef dealer = ((DealerManager.AvailableDealer) result).dealer;
 
-                    system.actorOf(Props.create(PlayerActor.class, () -> new PlayerActor(dealer)), "Jane");
-                    system.actorOf(Props.create(PlayerActor.class, () -> new PlayerActor(dealer)), "Mary");
-                    system.actorOf(Props.create(PlayerActor.class, () -> new PlayerActor(dealer)), "Paul");
-                    system.actorOf(Props.create(PlayerActor.class, () -> new PlayerActor(dealer)), "Andrew");
-
+                    system.actorOf(Props.create(PlayerActor.class, () -> new PlayerActor(dealer)), "Jule");
+                    system.actorOf(Props.create(PlayerActor.class, () -> new PlayerActor(dealer)), "Harry");
+                    system.actorOf(Props.create(PlayerActor.class, () -> new PlayerActor(dealer)), "Mark");
+                    system.actorOf(Props.create(PlayerActor.class, () -> new PlayerActor(dealer)), "Jay");
                 }
             }
         }, system.dispatcher());

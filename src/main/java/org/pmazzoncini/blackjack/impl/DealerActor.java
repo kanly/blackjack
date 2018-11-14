@@ -1,5 +1,15 @@
 package org.pmazzoncini.blackjack.impl;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toSet;
+import static org.pmazzoncini.blackjack.impl.model.FrenchDeck.newDeck;
+import static org.pmazzoncini.blackjack.impl.model.Game.GameResult;
+import static org.pmazzoncini.blackjack.impl.model.Game.GameResult.LOST;
+import static org.pmazzoncini.blackjack.impl.model.Game.GameResult.RETIRED;
+import static org.pmazzoncini.blackjack.impl.model.Game.GameResult.TIE;
+import static org.pmazzoncini.blackjack.impl.model.Game.GameResult.WON;
+
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.dispatch.OnFailure;
@@ -8,6 +18,14 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.japi.pf.ReceiveBuilder;
 import akka.pattern.Patterns;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.concurrent.TimeUnit;
 import org.pmazzoncini.blackjack.impl.model.Card;
 import org.pmazzoncini.blackjack.impl.model.Game;
 import org.pmazzoncini.blackjack.impl.model.Player;
@@ -18,42 +36,31 @@ import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
 import scala.runtime.BoxedUnit;
 
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toSet;
-import static org.pmazzoncini.blackjack.impl.model.FrenchDeck.newDeck;
-import static org.pmazzoncini.blackjack.impl.model.Game.GameResult;
-import static org.pmazzoncini.blackjack.impl.model.Game.GameResult.*;
-
 /**
- * Actor tha models a dealer behaviour. <br>
- * The dealer behave differently for each game phase
+ * Actor tha models a dealer behaviour. <br> The dealer behave differently for each game phase
  * <ul>
  * <li>
- * waiting for player phase: In this phase the dealer waits for players' subscription<br>
- * When a subscription arrives switches to bet phase.</li>
+ * waiting for player phase: In this phase the dealer waits for players' subscription<br> When a subscription arrives switches to bet
+ * phase.</li>
  * <li>
  * <b>bet phase</b>: In this phase the dealer asks players for bets, waiting some seconds. <br>
- * When bets are received the dealer switches to <b>in game phase</b>. <br>
- * If no bets are received and there are subscribed players he restarts <b>bet phase</b><br>
- * If no bets are received and there aren't any subscribed player he switches to <b>waiting for player phase</b>.
+ * When bets are received the dealer switches to <b>in game phase</b>. <br> If no bets are received and there are subscribed players he
+ * restarts <b>bet phase</b><br> If no bets are received and there aren't any subscribed player he switches to <b>waiting for player
+ * phase</b>.
  * </li>
  * <li>
  * <b>in game phase</b>: In this phase the dealer deals cards to every player and himself. <br>
- * Players will play one at a time. When all players have played the dealer plays then if the are subscribed players he switches to <b>bet phase</b>
- * otherwise he switches to <b>waiting for player phase</b>.
+ * Players will play one at a time. When all players have played the dealer plays then if the are subscribed players he switches to <b>bet
+ * phase</b> otherwise he switches to <b>waiting for player phase</b>.
  * </li>
  * </ul>
  */
 public class DealerActor extends AbstractActor {
-    private final LoggingAdapter log = Logging.getLogger(context().system(), this);
-    private static final String START_GAME = "startGame";
-    public static final ArrayList<Game> EMPTY_LIST = new ArrayList<>();
 
+    static final ArrayList<Game> EMPTY_LIST = new ArrayList<>();
+    private static final String START_GAME = "startGame";
     protected final List<Card> cards = new ArrayList<>();
+    private final LoggingAdapter log = Logging.getLogger(context().system(), this);
     private final List<Player> players = new ArrayList<>();
     private final TreeSet<Game> currentGames = new TreeSet<>(Game::scoreComparator);
     private final List<Game> completedGames = new ArrayList<>();
@@ -63,15 +70,16 @@ public class DealerActor extends AbstractActor {
     private long dealerStash = 10000L;
     private String myName;
 
-    public DealerActor() {
-        receive(waitingForPlayersPhase());
-    }
-
     @Override
     public void preStart() throws Exception {
         super.preStart();
 
         myName = self().path().name();
+    }
+
+    @Override
+    public Receive createReceive() {
+        return waitingForPlayersPhase();
     }
 
     /**
@@ -96,46 +104,47 @@ public class DealerActor extends AbstractActor {
 
         startGameAfter(5, SECONDS);
 
-        return ReceiveBuilder
-                .match(String.class, (s -> {
-                    switch (s) {
-                        case DealerMessages.WANNA_PLAY:
-                            // player is added but cannot bet in current round
-                            addPlayer();
-                            break;
-                        case DealerMessages.STOP_PLAY:
-                            Player player = searchPlayer(sender());
-                            retire(player);
+        return ReceiveBuilder.create()
+            .match(String.class, (s -> {
+                switch (s) {
+                    case DealerPlayerContract.WANNA_PLAY:
+                        // player is added but cannot bet in current round
+                        addPlayer();
+                        break;
+                    case DealerPlayerContract.STOP_PLAY:
+                        Player player = searchPlayer(sender());
+                        retire(player);
 
-                            Game game = searchGame(player);
-                            if (game != null) {
-                                gameLost(game, true);
-                            }
+                        Game game = searchGame(player);
+                        if (game != null) {
+                            gameLost(game, true);
+                        }
 
-                            break;
-                        case START_GAME:
-                            if (currentGames.isEmpty()) {
-                                if (players.isEmpty()) {
-                                    become(waitingForPlayersPhase());
-                                } else {
-                                    become(betPhase());
-                                }
+                        break;
+                    case START_GAME:
+                        if (currentGames.isEmpty()) {
+                            if (players.isEmpty()) {
+                                become(waitingForPlayersPhase().onMessage());
                             } else {
-                                become(inGamePhase());
+                                become(betPhase());
                             }
-                            break;
-                        default:
-                            replyToWrongMessage(s);
-                            break;
-                    }
-                }))
-                .match(AddGame.class, addGame -> {
-                    log.debug("Adding game {} for player {}", addGame.game.getGameId(), addGame.game.getPlayerName());
-                    currentGames.add(addGame.game);
-                    currentRound.addGame(addGame.game);
-                })
-                .matchAny(this::replyToWrongMessage)
-                .build();
+                        } else {
+                            become(inGamePhase());
+                        }
+                        break;
+                    default:
+                        replyToWrongMessage(s);
+                        break;
+                }
+            }))
+            .match(AddGame.class, addGame -> {
+                log.debug("Adding game {} for player {}", addGame.game.getGameId(), addGame.game.getPlayerName());
+                currentGames.add(addGame.game);
+                currentRound.addGame(addGame.game);
+            })
+            .matchAny(this::replyToWrongMessage)
+            .build()
+            .onMessage();
 
     }
 
@@ -144,7 +153,7 @@ public class DealerActor extends AbstractActor {
      */
     private PartialFunction<Object, BoxedUnit> inGamePhase() {
         // distribuire una carta per ogni game in connection order
-        log.info("dealer {} entering in gamePhase", myName);
+        log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> dealer {} entering in gamePhase <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<", myName);
         Set<Player> playingPlayers = currentGames.stream().map(Game::getPlayer).collect(toSet());
 
         log.debug("dealer {} dealing a faceUp card to every playing player", myName);
@@ -159,106 +168,108 @@ public class DealerActor extends AbstractActor {
         dealACardToEveryPlayingPlayer(playingPlayers);
 
         nextPlayerTurn();
-        return ReceiveBuilder
-                .match(String.class, stringMsg -> {
-                    switch (stringMsg) {
-                        case DealerMessages.WANNA_PLAY:
-                            addPlayer();
-                            break;
-                        case DealerMessages.STOP_PLAY:
-                            Player player = searchPlayer(sender());
-                            log.info("player {} is stopping playing", player.getRef().path().name());
-                            retire(player);
-                            Game game = searchGame(player);
+        return ReceiveBuilder.create()
+            .match(String.class, stringMsg -> {
+                switch (stringMsg) {
+                    case DealerPlayerContract.WANNA_PLAY:
+                        addPlayer();
+                        break;
+                    case DealerPlayerContract.STOP_PLAY:
+                        Player player = searchPlayer(sender());
+                        log.info("player {} is stopping playing", player.getRef().path().name());
+                        retire(player);
+                        Game game = searchGame(player);
 
-                            if (game != null) {
-                                if (game.equals(currentlyPlayedGame)) {
-                                    nextPlayerTurn();
-                                }
-                                gameLost(game, true);
+                        if (game != null) {
+                            if (game.equals(currentlyPlayedGame)) {
+                                nextPlayerTurn();
                             }
+                            gameLost(game, true);
+                        }
 
-                            if (currentGames.isEmpty()) {
-                                if (players.isEmpty()) {
-                                    become(waitingForPlayersPhase());
-                                } else {
-                                    become(betPhase());
-                                }
-                            }
-                            break;
-                        default:
-                            replyToWrongMessage(stringMsg);
-                            break;
-                    }
-                })
-                .match(DealerMessages.DealerRequest.class, request -> {
-                    switch (request.request()) {
-                        case DealerMessages.DealerRequest.HIT:
-
-                            log.debug("dealer {}, received an HIT message", myName);
-
-                            if (request.player().equals(currentlyPlayedGame.getPlayer().getRef())) {
-                                Card card = draw();
-                                currentlyPlayedGame.cardDrawn(card);
-                                sendDrawnCardMessage(card);
-                                if (currentlyPlayedGame.getScore() > 21) {
-                                    gameLost(currentlyPlayedGame);
-
-                                    nextPlayerTurn();
-
-                                } else if (currentlyPlayedGame.getScore() == 21) {
-                                    currentlyPlayedGame.getPlayer().getRef().tell(DealerMessages.MUST_STAND, self());
-                                    completedGames.add(currentlyPlayedGame);
-
-                                    nextPlayerTurn();
-                                }
+                        if (currentGames.isEmpty()) {
+                            if (players.isEmpty()) {
+                                become(waitingForPlayersPhase().onMessage());
                             } else {
-                                log.warning("Hit received from an unexepcted actor {}", sender().path().toSerializationFormat());
-                                replyToWrongMessage(request);
+                                become(betPhase());
                             }
-                            break;
-                        case DealerMessages.DealerRequest.STAND:
-                            if (request.player().equals(currentlyPlayedGame.getPlayer().getRef())) {
-                                completedGames.add(currentlyPlayedGame);
+                        }
+                        break;
+                    default:
+                        replyToWrongMessage(stringMsg);
+                        break;
+                }
+            })
+            .match(DealerPlayerContract.DealerRequest.class, request -> {
+                switch (request.request()) {
+                    case DealerPlayerContract.DealerRequest.HIT:
+
+                        log.debug("dealer {}, received an HIT message", myName);
+
+                        if (request.player().equals(currentlyPlayedGame.getPlayer().getRef())) {
+                            Card card = draw();
+                            currentlyPlayedGame.cardDrawn(card);
+                            sendDrawnCardMessage(card);
+                            if (currentlyPlayedGame.getScore() > 21) {
+                                gameLost(currentlyPlayedGame);
+
                                 nextPlayerTurn();
 
+                            } else if (currentlyPlayedGame.getScore() == 21) {
+                                currentlyPlayedGame.getPlayer().getRef().tell(DealerPlayerContract.MUST_STAND, self());
+                                completedGames.add(currentlyPlayedGame);
+
+                                nextPlayerTurn();
                             }
-                            break;
-                    }
-                })
-                .matchAny(this::replyToWrongMessage)
-                .build();
+                        } else {
+                            log.warning("Hit received from an unexepcted actor {}", sender().path().toSerializationFormat());
+                            replyToWrongMessage(request);
+                        }
+                        break;
+                    case DealerPlayerContract.DealerRequest.STAND:
+                        if (request.player().equals(currentlyPlayedGame.getPlayer().getRef())) {
+                            completedGames.add(currentlyPlayedGame);
+                            nextPlayerTurn();
+
+                        }
+                        break;
+                }
+            })
+            .matchAny(this::replyToWrongMessage)
+            .build()
+            .onMessage();
     }
 
     /**
      * @return the waiting for player phase {@link scala.PartialFunction} that models the actor behaviour
      */
-    private PartialFunction<Object, BoxedUnit> waitingForPlayersPhase() {
+    private Receive waitingForPlayersPhase() {
         log.info("dealer {} entering in waitingForPlayersPhase", myName);
-        return ReceiveBuilder
-                .match(String.class, stringMsg -> {
-                    switch (stringMsg) {
-                        case DealerMessages.WANNA_PLAY:
-                            addPlayer();
-                            become(betPhase());
-                            break;
-                        default:
-                            replyToWrongMessage(stringMsg);
-                            break;
-                    }
-                })
-                .matchAny(this::replyToWrongMessage)
-                .build();
+        return ReceiveBuilder.create()
+            .match(String.class, stringMsg -> {
+                switch (stringMsg) {
+                    case DealerPlayerContract.WANNA_PLAY:
+                        addPlayer();
+                        become(betPhase());
+                        break;
+                    default:
+                        replyToWrongMessage(stringMsg);
+                        break;
+                }
+            })
+            .matchAny(this::replyToWrongMessage)
+            .build();
     }
 
     private void startGameAfter(int length, TimeUnit seconds) {
-        context().system().scheduler().scheduleOnce(Duration.create(length, seconds), self(), START_GAME, getContext().system().dispatcher(), self());
+        context().system().scheduler()
+            .scheduleOnce(Duration.create(length, seconds), self(), START_GAME, getContext().system().dispatcher(), self());
     }
 
     private void askForBets() {
         ExecutionContextExecutor dispatcher = getContext().system().dispatcher();
         players.stream().forEach(player -> {
-            Future<Object> bet = Patterns.ask(player.getRef(), DealerMessages.PLEASE_BET, 5000L);
+            Future<Object> bet = Patterns.ask(player.getRef(), DealerPlayerContract.PLEASE_BET, 5000L);
             bet.onSuccess(onReceivedBet(player), dispatcher);
             bet.onFailure(new OnFailure() {
                 @Override
@@ -273,8 +284,8 @@ public class DealerActor extends AbstractActor {
         return new OnSuccess<Object>() {
             @Override
             public void onSuccess(Object result) throws Throwable {
-                if (result instanceof DealerMessages.Bet) {
-                    self().tell(new AddGame(new Game(player, ((DealerMessages.Bet) result).getBet())), self());
+                if (result instanceof DealerPlayerContract.Bet) {
+                    self().tell(new AddGame(new Game(player, ((DealerPlayerContract.Bet) result).getBet())), self());
                 }
             }
         };
@@ -287,7 +298,7 @@ public class DealerActor extends AbstractActor {
     }
 
     private void faceUpDealerCardDrawn(Set<Player> playingPlayers, Card dealerCard) {
-        DealerMessages.CardDrawn dealerCardMessage = new DealerMessages.CardDrawn(dealerCard, true);
+        DealerPlayerContract.CardDrawn dealerCardMessage = new DealerPlayerContract.CardDrawn(dealerCard, true);
         playingPlayers.forEach(player -> player.getRef().tell(dealerCardMessage, self()));
     }
 
@@ -296,7 +307,7 @@ public class DealerActor extends AbstractActor {
         currentlyPlayedGame = currentGames.pollFirst();
         log.debug("Currently played game: {}, currentGames remaining size: {}", currentlyPlayedGame, currentGames.size());
         if (currentlyPlayedGame != null) {
-            currentlyPlayedGame.getPlayer().getRef().tell(DealerMessages.YOUR_TURN, self());
+            currentlyPlayedGame.getPlayer().getRef().tell(DealerPlayerContract.YOUR_TURN, self());
         } else {
             dealerTurn();
             calculateResults();
@@ -304,7 +315,7 @@ public class DealerActor extends AbstractActor {
             saveRound();
 
             if (players.isEmpty()) {
-                become(waitingForPlayersPhase());
+                become(waitingForPlayersPhase().onMessage());
             } else {
                 become(betPhase());
             }
@@ -333,11 +344,11 @@ public class DealerActor extends AbstractActor {
     }
 
     private void sendDrawnCardMessage(Card card) {
-        sender().tell(new DealerMessages.CardDrawn(card), self());
+        sender().tell(new DealerPlayerContract.CardDrawn(card), self());
     }
 
     private void sendDrawnCardMessageTo(Card card, Player player) {
-        player.getRef().tell(new DealerMessages.CardDrawn(card), self());
+        player.getRef().tell(new DealerPlayerContract.CardDrawn(card), self());
     }
 
     private void dealerTurn() {
@@ -393,7 +404,7 @@ public class DealerActor extends AbstractActor {
         dealerStash += gameLost.getBet() + gameLost.getPlayer().getPot();
         gameLost.getPlayer().setPot(0L);
         ActorRef playerRef = gameLost.getPlayer().getRef();
-        playerRef.tell(DealerMessages.YOU_LOST, self());
+        playerRef.tell(DealerPlayerContract.YOU_LOST, self());
     }
 
     private void gameWon(Game gameWon) {
@@ -401,7 +412,7 @@ public class DealerActor extends AbstractActor {
         gameWon.setGameResult(WON);
         dealerStash -= gameWon.getBet();
         Player player = gameWon.getPlayer();
-        player.getRef().tell(new DealerMessages.YouWon(gameWon.getBet() * 2 + player.getPot()), self());
+        player.getRef().tell(new DealerPlayerContract.YouWon(gameWon.getBet() * 2 + player.getPot()), self());
         player.setPot(0L);
     }
 
@@ -410,7 +421,7 @@ public class DealerActor extends AbstractActor {
         gameTied.setGameResult(TIE);
         gameTied.getPlayer().setPot(gameTied.getPlayer().getPot() + gameTied.getBet());
         ActorRef playerRef = gameTied.getPlayer().getRef();
-        playerRef.tell(DealerMessages.TIED_GAME, self());
+        playerRef.tell(DealerPlayerContract.TIED_GAME, self());
     }
 
     protected void newShuffledDeck() {
@@ -433,7 +444,7 @@ public class DealerActor extends AbstractActor {
     }
 
     private void replyToWrongMessage(Object mess) {
-        sender().tell(new DealerMessages.WrongMessage(mess), self());
+        sender().tell(new DealerPlayerContract.WrongMessage(mess), self());
     }
 
     private void become(PartialFunction<Object, BoxedUnit> behavior) {
@@ -444,6 +455,7 @@ public class DealerActor extends AbstractActor {
      * The AddGame self-message class
      */
     private static class AddGame {
+
         private final Game game;
 
         private AddGame(Game game) {

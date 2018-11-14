@@ -6,10 +6,11 @@ import com.hazelcast.core.HazelcastInstance;
 import org.pmazzoncini.blackjack.impl.model.Round;
 
 /**
- * this class wraps an in memory hazelcast instance that will be used to save Game History data in the form of
- * {@link org.pmazzoncini.blackjack.impl.model.Round} objects
+ * this class wraps an in memory hazelcast instance that will be used to save Game History data in the form of {@link
+ * org.pmazzoncini.blackjack.impl.model.Round} objects
  */
 public class GameHistory {
+
     public static final String ROUNDS_LIST_KEY = "rounds";
     private final HazelcastInstance hazelcast;
 
@@ -18,16 +19,17 @@ public class GameHistory {
         this.hazelcast = Hazelcast.newHazelcastInstance(cfg);
     }
 
-    private static class Holder {
-        private static final GameHistory INSTANCE = new GameHistory();
-    }
-
-    public static GameHistory instance() {
+    static GameHistory instance() {
         return Holder.INSTANCE;
     }
 
-    public void saveCompletedRound(Round round) {
+    void saveCompletedRound(Round round) {
         hazelcast.getList(ROUNDS_LIST_KEY).add(round);
+    }
+
+    private static class Holder {
+
+        private static final GameHistory INSTANCE = new GameHistory();
     }
 
 }

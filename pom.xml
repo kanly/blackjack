@@ -11,7 +11,7 @@
     <packaging>bundle</packaging>
 
     <properties>
-        <akka.version>2.3.3</akka.version>
+        <akka.version>2.5.17</akka.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -21,33 +21,23 @@
     <dependencies>
         <dependency>
             <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-actor_2.11</artifactId>
+            <artifactId>akka-actor_2.12</artifactId>
             <version>${akka.version}</version>
         </dependency>
         <dependency>
             <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-remote_2.11</artifactId>
+            <artifactId>akka-remote_2.12</artifactId>
             <version>${akka.version}</version>
         </dependency>
         <dependency>
             <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-slf4j_2.11</artifactId>
+            <artifactId>akka-slf4j_2.12</artifactId>
             <version>${akka.version}</version>
-        </dependency>
-       <!-- <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-osgi_2.11</artifactId>
-            <version>${akka.version}</version>
-        </dependency>-->
-        <dependency>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.framework</artifactId>
-            <version>4.4.1</version>
         </dependency>
         <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast</artifactId>
-            <version>3.2.5</version>
+            <version>3.11</version>
         </dependency>
 
         <!-- LOG -->
@@ -70,7 +60,7 @@
         <!-- TEST -->
         <dependency>
             <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-testkit_2.11</artifactId>
+            <artifactId>akka-testkit_2.12</artifactId>
             <version>${akka.version}</version>
             <scope>test</scope>
         </dependency>

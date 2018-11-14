@@ -2,13 +2,13 @@ package org.pmazzoncini.blackjack.impl.model;
 
 
 import akka.actor.ActorRef;
-
 import java.io.Serializable;
 
 /**
  * A model representing a player
  */
-public class Player  implements Serializable {
+public class Player implements Serializable {
+
     private final ActorRef ref;
     private long pot;
 
@@ -30,13 +30,21 @@ public class Player  implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         Player player = (Player) o;
 
-        if (pot != player.pot) return false;
-        if (ref != null ? !ref.equals(player.ref) : player.ref != null) return false;
+        if (pot != player.pot) {
+            return false;
+        }
+        if (ref != null ? !ref.equals(player.ref) : player.ref != null) {
+            return false;
+        }
 
         return true;
     }

@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
  * A model representing a game round.
  */
 public class Round implements Serializable {
+
     private final UUID roundId = UUID.randomUUID();
     private final List<Game> games = new ArrayList<>();
     private final Date roundStartDate = new Date();
@@ -60,12 +61,18 @@ public class Round implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         Round round = (Round) o;
 
-        if (!roundId.equals(round.roundId)) return false;
+        if (!roundId.equals(round.roundId)) {
+            return false;
+        }
 
         return true;
     }
@@ -81,12 +88,12 @@ public class Round implements Serializable {
         String gamesString = games.parallelStream().map(Game::toString).collect(Collectors.joining("; "));
 
         return "Round{" +
-                "roundId=" + roundId +
-                ", games=" + gamesString +
-                ", roundStartDate=" + roundStartDate +
-                ", dealer='" + dealer + '\'' +
-                ", endDate=" + endDate + '\'' +
-                ", dealerScore=" + dealerScore  +
-                '}';
+            "roundId=" + roundId +
+            ", games=" + gamesString +
+            ", roundStartDate=" + roundStartDate +
+            ", dealer='" + dealer + '\'' +
+            ", endDate=" + endDate + '\'' +
+            ", dealerScore=" + dealerScore +
+            '}';
     }
 }

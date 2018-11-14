@@ -1,7 +1,11 @@
 package org.pmazzoncini.blackjack;
 
 import com.hazelcast.config.Config;
-import com.hazelcast.core.*;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.IList;
+import com.hazelcast.core.ItemEvent;
+import com.hazelcast.core.ItemListener;
 import org.pmazzoncini.blackjack.impl.GameHistory;
 import org.pmazzoncini.blackjack.impl.model.Round;
 

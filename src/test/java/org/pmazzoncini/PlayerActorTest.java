@@ -7,7 +7,7 @@ import akka.testkit.JavaTestKit;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.pmazzoncini.blackjack.impl.DealerMessages;
+import org.pmazzoncini.blackjack.impl.DealerPlayerContract;
 import org.pmazzoncini.blackjack.impl.PlayerActor;
 import org.pmazzoncini.blackjack.impl.model.Card;
 import org.pmazzoncini.blackjack.impl.model.FrenchDeck;
@@ -18,7 +18,7 @@ import scala.concurrent.duration.Duration;
 import static akka.pattern.Patterns.ask;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.Assert.assertTrue;
-import static org.pmazzoncini.blackjack.impl.DealerMessages.*;
+import static org.pmazzoncini.blackjack.impl.DealerPlayerContract.*;
 
 public class PlayerActorTest {
     static ActorSystem system;
@@ -42,7 +42,7 @@ public class PlayerActorTest {
 
             Future<Object> ask = ask(player, PLEASE_BET, 2000L);
             Object result = Await.result(ask, Duration.create(2L, SECONDS));
-            assertTrue(result instanceof DealerMessages.Bet);
+            assertTrue(result instanceof DealerPlayerContract.Bet);
         }};
 
 
@@ -56,22 +56,22 @@ public class PlayerActorTest {
             expectMsgEquals(WANNA_PLAY);
 
             player.tell(YOUR_TURN, getTestActor());
-            expectMsgEquals(DealerMessages.DealerRequest.hit(player));
+            expectMsgEquals(DealerPlayerContract.DealerRequest.hit(player));
 
             Card nextCard = new Card(FrenchDeck.DIAMONDS, "5");
             //send(getLastSender(),new CardDrawn(nextCard));
             reply(new CardDrawn(nextCard));
-            expectMsgEquals(DealerMessages.DealerRequest.hit(player));
+            expectMsgEquals(DealerPlayerContract.DealerRequest.hit(player));
 
             nextCard = new Card(FrenchDeck.DIAMONDS, "9");
             //send(getLastSender(),new CardDrawn(nextCard));
             reply(new CardDrawn(nextCard));
-            expectMsgEquals(DealerMessages.DealerRequest.hit(player));
+            expectMsgEquals(DealerPlayerContract.DealerRequest.hit(player));
 
             nextCard = new Card(FrenchDeck.DIAMONDS, "4");
             //send(getLastSender(),new CardDrawn(nextCard));
             reply(new CardDrawn(nextCard));
-            expectMsgEquals(DealerMessages.DealerRequest.stand(player));
+            expectMsgEquals(DealerPlayerContract.DealerRequest.stand(player));
 
 
         }};

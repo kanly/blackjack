@@ -1,15 +1,16 @@
 package org.pmazzoncini.blackjack.impl.model;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.util.stream.Collectors.toList;
-
 /**
- * Set of constants representing card values and seeds in a french deck <br>
- * Is also included a method that create a new deck in the form of a List of cards
+ * Set of constants representing card values and seeds in a french deck <br> Is also included a method that create a new deck in the form of
+ * a List of cards
  */
 public interface FrenchDeck {
+
     public static final String ACE = "A";
     public static final String JACK = "J";
     public static final String QUEEN = "Q";
@@ -45,7 +46,7 @@ public interface FrenchDeck {
 
     public static List<Card> newDeck() {
         return SEEDS.stream()
-                    .flatMap(seed -> RANKS.stream().map(rank -> new Card(seed, rank)))
-                    .collect(toList());
+            .flatMap(seed -> RANKS.stream().map(rank -> new Card(seed, rank)))
+            .collect(toList());
     }
 }

@@ -2,7 +2,6 @@ package org.pmazzoncini.blackjack;
 
 import akka.actor.ActorSystem;
 import akka.actor.Props;
-import org.pmazzoncini.blackjack.impl.DealerActor;
 import org.pmazzoncini.blackjack.impl.DealerManager;
 
 public class Server {

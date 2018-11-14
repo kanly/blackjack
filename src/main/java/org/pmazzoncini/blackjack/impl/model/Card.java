@@ -1,14 +1,18 @@
 package org.pmazzoncini.blackjack.impl.model;
 
+import static org.pmazzoncini.blackjack.impl.model.FrenchDeck.ACE;
+import static org.pmazzoncini.blackjack.impl.model.FrenchDeck.JACK;
+import static org.pmazzoncini.blackjack.impl.model.FrenchDeck.KING;
+import static org.pmazzoncini.blackjack.impl.model.FrenchDeck.QUEEN;
+
 import java.io.Serializable;
 import java.text.MessageFormat;
-
-import static org.pmazzoncini.blackjack.impl.model.FrenchDeck.*;
 
 /**
  * A model representing a Card
  */
-public class Card  implements Serializable  {
+public class Card implements Serializable {
+
     private final String seed;
     private final String rank;
     private final int value;

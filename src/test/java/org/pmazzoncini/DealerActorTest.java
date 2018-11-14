@@ -9,10 +9,10 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.pmazzoncini.blackjack.impl.DealerActor;
-import org.pmazzoncini.blackjack.impl.DealerMessages;
+import org.pmazzoncini.blackjack.impl.DealerPlayerContract;
 import org.pmazzoncini.blackjack.impl.model.Card;
 
-import static org.pmazzoncini.blackjack.impl.DealerMessages.*;
+import static org.pmazzoncini.blackjack.impl.DealerPlayerContract.*;
 import static org.pmazzoncini.blackjack.impl.model.FrenchDeck.*;
 
 public class DealerActorTest {
@@ -62,13 +62,13 @@ public class DealerActorTest {
             expectMsgClass(duration("5 seconds"), CardDrawn.class);
             expectMsgEquals(duration("5 seconds"), YOUR_TURN);
 
-            dealer.tell(DealerMessages.DealerRequest.hit(getRef()), getRef());
+            dealer.tell(DealerPlayerContract.DealerRequest.hit(getRef()), getRef());
             expectMsgClass(duration("5 seconds"), CardDrawn.class);
 
-            dealer.tell(DealerMessages.DealerRequest.hit(getRef()), getRef());
+            dealer.tell(DealerPlayerContract.DealerRequest.hit(getRef()), getRef());
             expectMsgClass(duration("5 seconds"), CardDrawn.class);
 
-            dealer.tell(DealerMessages.DealerRequest.stand(getRef()), getRef());
+            dealer.tell(DealerPlayerContract.DealerRequest.stand(getRef()), getRef());
 
             expectMsgClass(duration("5 seconds"), CardDrawn.class);
             expectMsgClass(duration("5 seconds"), CardDrawn.class);
@@ -117,13 +117,13 @@ public class DealerActorTest {
             expectMsgClass(duration("5 seconds"), CardDrawn.class);
             expectMsgEquals(duration("5 seconds"), YOUR_TURN);
 
-            dealer.tell(DealerMessages.DealerRequest.hit(getRef()), getRef());
+            dealer.tell(DealerPlayerContract.DealerRequest.hit(getRef()), getRef());
             expectMsgClass(duration("5 seconds"), CardDrawn.class);
 
-            dealer.tell(DealerMessages.DealerRequest.hit(getRef()), getRef());
+            dealer.tell(DealerPlayerContract.DealerRequest.hit(getRef()), getRef());
             expectMsgClass(duration("5 seconds"), CardDrawn.class);
 
-            dealer.tell(DealerMessages.DealerRequest.stand(getRef()), getRef());
+            dealer.tell(DealerPlayerContract.DealerRequest.stand(getRef()), getRef());
 
             expectMsgClass(duration("5 seconds"), CardDrawn.class);
             expectMsgClass(duration("5 seconds"), CardDrawn.class);
@@ -172,13 +172,13 @@ public class DealerActorTest {
             expectMsgClass(duration("5 seconds"), CardDrawn.class);
             expectMsgEquals(duration("5 seconds"), YOUR_TURN);
 
-            dealer.tell(DealerMessages.DealerRequest.hit(getRef()), getRef());
+            dealer.tell(DealerPlayerContract.DealerRequest.hit(getRef()), getRef());
             expectMsgClass(duration("5 seconds"), CardDrawn.class);
 
-            dealer.tell(DealerMessages.DealerRequest.hit(getRef()), getRef());
+            dealer.tell(DealerPlayerContract.DealerRequest.hit(getRef()), getRef());
             expectMsgClass(duration("5 seconds"), CardDrawn.class);
 
-            dealer.tell(DealerMessages.DealerRequest.stand(getRef()), getRef());
+            dealer.tell(DealerPlayerContract.DealerRequest.stand(getRef()), getRef());
 
             expectMsgClass(duration("5 seconds"), CardDrawn.class);
             expectMsgClass(duration("5 seconds"), CardDrawn.class);
