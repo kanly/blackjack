@@ -2,10 +2,28 @@ package org.pmazzoncini;
 
 
 import static org.junit.Assert.assertTrue;
+import static org.pmazzoncini.Durations.in15Seconds;
+import static org.pmazzoncini.Durations.in3Seconds;
+import static org.pmazzoncini.Durations.in5Seconds;
+import static org.pmazzoncini.blackjack.impl.DealerPlayerContract.Bet;
+import static org.pmazzoncini.blackjack.impl.DealerPlayerContract.CardDrawn;
+import static org.pmazzoncini.blackjack.impl.DealerPlayerContract.PLEASE_BET;
+import static org.pmazzoncini.blackjack.impl.DealerPlayerContract.STOP_PLAY;
+import static org.pmazzoncini.blackjack.impl.DealerPlayerContract.TIED_GAME;
+import static org.pmazzoncini.blackjack.impl.DealerPlayerContract.WANNA_PLAY;
+import static org.pmazzoncini.blackjack.impl.DealerPlayerContract.YOUR_TURN;
+import static org.pmazzoncini.blackjack.impl.DealerPlayerContract.YOU_LOST;
+import static org.pmazzoncini.blackjack.impl.DealerPlayerContract.YouWon;
+import static org.pmazzoncini.blackjack.impl.model.FrenchDeck.ACE;
+import static org.pmazzoncini.blackjack.impl.model.FrenchDeck.DIAMONDS;
+import static org.pmazzoncini.blackjack.impl.model.FrenchDeck.HEARTS;
+import static org.pmazzoncini.blackjack.impl.model.FrenchDeck.QUEEN;
+import static org.pmazzoncini.blackjack.impl.model.FrenchDeck.SPADES;
+
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
-import akka.testkit.JavaTestKit;
+import akka.testkit.TestKit;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -13,10 +31,8 @@ import org.pmazzoncini.blackjack.impl.DealerActor;
 import org.pmazzoncini.blackjack.impl.DealerPlayerContract;
 import org.pmazzoncini.blackjack.impl.model.Card;
 
-import static org.pmazzoncini.blackjack.impl.DealerPlayerContract.*;
-import static org.pmazzoncini.blackjack.impl.model.FrenchDeck.*;
-
 public class DealerActorTest {
+
     static ActorSystem system;
 
     @BeforeClass
@@ -26,13 +42,13 @@ public class DealerActorTest {
 
     @AfterClass
     public static void teardown() {
-        JavaTestKit.shutdownActorSystem(system);
+        TestKit.shutdownActorSystem(system, in15Seconds, true);
         system = null;
     }
 
     @Test
     public void singlePlayerLose() {
-        new JavaTestKit(system) {{
+        new TestKit(system) {{
             Props props = Props.create(DealerActor.class, () -> new DealerActor() {
                 @Override
                 protected void newShuffledDeck() {
@@ -53,41 +69,41 @@ public class DealerActorTest {
             });
             ActorRef dealer = system.actorOf(props);
 
-            dealer.tell(WANNA_PLAY, getRef());
+            dealer.tell(WANNA_PLAY, testActor());
 
-            expectMsgEquals(duration("15 seconds"), PLEASE_BET);
-            getLastSender().tell(new Bet(50), getRef());
+            expectMsg(in15Seconds, PLEASE_BET);
+            lastSender().tell(new Bet(50), testActor());
 
-            expectMsgClass(duration("15 seconds"), CardDrawn.class);
-            expectMsgClass(duration("5 seconds"), CardDrawn.class);
-            expectMsgClass(duration("5 seconds"), CardDrawn.class);
-            expectMsgEquals(duration("5 seconds"), YOUR_TURN);
+            expectMsgClass(in15Seconds, CardDrawn.class);
+            expectMsgClass(in5Seconds, CardDrawn.class);
+            expectMsgClass(in5Seconds, CardDrawn.class);
+            expectMsg(in5Seconds, YOUR_TURN);
 
-            dealer.tell(DealerPlayerContract.DealerRequest.hit(getRef()), getRef());
-            expectMsgClass(duration("5 seconds"), CardDrawn.class);
+            dealer.tell(DealerPlayerContract.DealerRequest.hit(testActor()), testActor());
+            expectMsgClass(in5Seconds, CardDrawn.class);
 
-            dealer.tell(DealerPlayerContract.DealerRequest.hit(getRef()), getRef());
-            expectMsgClass(duration("5 seconds"), CardDrawn.class);
+            dealer.tell(DealerPlayerContract.DealerRequest.hit(testActor()), testActor());
+            expectMsgClass(in5Seconds, CardDrawn.class);
 
-            dealer.tell(DealerPlayerContract.DealerRequest.stand(getRef()), getRef());
+            dealer.tell(DealerPlayerContract.DealerRequest.stand(testActor()), testActor());
 
-            expectMsgClass(duration("5 seconds"), CardDrawn.class);
-            expectMsgClass(duration("5 seconds"), CardDrawn.class);
+            expectMsgClass(in5Seconds, CardDrawn.class);
+            expectMsgClass(in5Seconds, CardDrawn.class);
 
-            expectMsgEquals(duration("5 seconds"), YOU_LOST);
+            expectMsg(in5Seconds, YOU_LOST);
 
-            expectMsgEquals(duration("5 seconds"), PLEASE_BET);
+            expectMsg(in5Seconds, PLEASE_BET);
 
-            dealer.tell(STOP_PLAY, getRef());
+            dealer.tell(STOP_PLAY, testActor());
 
-            expectNoMsg(duration("3 seconds"));
+            expectNoMsg(in3Seconds);
         }};
     }
 
 
     @Test
     public void singlePLayerWon() {
-        new JavaTestKit(system) {{
+        new TestKit(system) {{
             Props props = Props.create(DealerActor.class, () -> new DealerActor() {
                 @Override
                 protected void newShuffledDeck() {
@@ -108,42 +124,42 @@ public class DealerActorTest {
             });
             ActorRef dealer = system.actorOf(props);
 
-            dealer.tell(WANNA_PLAY, getRef());
+            dealer.tell(WANNA_PLAY, testActor());
 
-            expectMsgEquals(duration("15 seconds"), PLEASE_BET);
-            getLastSender().tell(new Bet(50), getRef());
+            expectMsg(in15Seconds, PLEASE_BET);
+            lastSender().tell(new Bet(50), testActor());
 
-            expectMsgClass(duration("15 seconds"), CardDrawn.class);
-            expectMsgClass(duration("5 seconds"), CardDrawn.class);
-            expectMsgClass(duration("5 seconds"), CardDrawn.class);
-            expectMsgEquals(duration("5 seconds"), YOUR_TURN);
+            expectMsgClass(in15Seconds, CardDrawn.class);
+            expectMsgClass(in5Seconds, CardDrawn.class);
+            expectMsgClass(in5Seconds, CardDrawn.class);
+            expectMsg(in5Seconds, YOUR_TURN);
 
-            dealer.tell(DealerPlayerContract.DealerRequest.hit(getRef()), getRef());
-            expectMsgClass(duration("5 seconds"), CardDrawn.class);
+            dealer.tell(DealerPlayerContract.DealerRequest.hit(testActor()), testActor());
+            expectMsgClass(in5Seconds, CardDrawn.class);
 
-            dealer.tell(DealerPlayerContract.DealerRequest.hit(getRef()), getRef());
-            expectMsgClass(duration("5 seconds"), CardDrawn.class);
+            dealer.tell(DealerPlayerContract.DealerRequest.hit(testActor()), testActor());
+            expectMsgClass(in5Seconds, CardDrawn.class);
 
-            dealer.tell(DealerPlayerContract.DealerRequest.stand(getRef()), getRef());
+            dealer.tell(DealerPlayerContract.DealerRequest.stand(testActor()), testActor());
 
-            expectMsgClass(duration("5 seconds"), CardDrawn.class);
-            expectMsgClass(duration("5 seconds"), CardDrawn.class);
+            expectMsgClass(in5Seconds, CardDrawn.class);
+            expectMsgClass(in5Seconds, CardDrawn.class);
 
             YouWon youWon = expectMsgClass(YouWon.class);
             assertTrue("should've won 50", youWon.equals(new YouWon(100L)));
 
-            expectMsgEquals(duration("5 seconds"), PLEASE_BET);
+            expectMsg(in5Seconds, PLEASE_BET);
 
-            dealer.tell(STOP_PLAY, getRef());
+            dealer.tell(STOP_PLAY, testActor());
 
-            expectNoMsg(duration("3 seconds"));
+            expectNoMsg(in3Seconds);
 
         }};
     }
 
     @Test
     public void singlePLayerTie() {
-        new JavaTestKit(system) {{
+        new TestKit(system) {{
             Props props = Props.create(DealerActor.class, () -> new DealerActor() {
                 @Override
                 protected void newShuffledDeck() {
@@ -164,34 +180,34 @@ public class DealerActorTest {
             });
             ActorRef dealer = system.actorOf(props);
 
-            dealer.tell(WANNA_PLAY, getRef());
+            dealer.tell(WANNA_PLAY, testActor());
 
-            expectMsgEquals(duration("15 seconds"), PLEASE_BET);
-            getLastSender().tell(new Bet(50), getRef());
+            expectMsg(in15Seconds, PLEASE_BET);
+            lastSender().tell(new Bet(50), testActor());
 
-            expectMsgClass(duration("15 seconds"), CardDrawn.class);
-            expectMsgClass(duration("5 seconds"), CardDrawn.class);
-            expectMsgClass(duration("5 seconds"), CardDrawn.class);
-            expectMsgEquals(duration("5 seconds"), YOUR_TURN);
+            expectMsgClass(in15Seconds, CardDrawn.class);
+            expectMsgClass(in5Seconds, CardDrawn.class);
+            expectMsgClass(in5Seconds, CardDrawn.class);
+            expectMsg(in5Seconds, YOUR_TURN);
 
-            dealer.tell(DealerPlayerContract.DealerRequest.hit(getRef()), getRef());
-            expectMsgClass(duration("5 seconds"), CardDrawn.class);
+            dealer.tell(DealerPlayerContract.DealerRequest.hit(testActor()), testActor());
+            expectMsgClass(in5Seconds, CardDrawn.class);
 
-            dealer.tell(DealerPlayerContract.DealerRequest.hit(getRef()), getRef());
-            expectMsgClass(duration("5 seconds"), CardDrawn.class);
+            dealer.tell(DealerPlayerContract.DealerRequest.hit(testActor()), testActor());
+            expectMsgClass(in5Seconds, CardDrawn.class);
 
-            dealer.tell(DealerPlayerContract.DealerRequest.stand(getRef()), getRef());
+            dealer.tell(DealerPlayerContract.DealerRequest.stand(testActor()), testActor());
 
-            expectMsgClass(duration("5 seconds"), CardDrawn.class);
-            expectMsgClass(duration("5 seconds"), CardDrawn.class);
+            expectMsgClass(in5Seconds, CardDrawn.class);
+            expectMsgClass(in5Seconds, CardDrawn.class);
 
-            expectMsgEquals(duration("5 seconds"), TIED_GAME);
+            expectMsg(in5Seconds, TIED_GAME);
 
-            expectMsgEquals(duration("5 seconds"), PLEASE_BET);
+            expectMsg(in5Seconds, PLEASE_BET);
 
-            dealer.tell(STOP_PLAY, getRef());
+            dealer.tell(STOP_PLAY, testActor());
 
-            expectNoMsg(duration("3 seconds"));
+            expectNoMsg(in3Seconds);
 
         }};
     }
