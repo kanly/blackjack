@@ -1,6 +1,7 @@
 package org.pmazzoncini;
 
 
+import static org.junit.Assert.assertTrue;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
@@ -128,7 +129,8 @@ public class DealerActorTest {
             expectMsgClass(duration("5 seconds"), CardDrawn.class);
             expectMsgClass(duration("5 seconds"), CardDrawn.class);
 
-            expectMsgEquals(duration("5 seconds"), new YouWon(50L));
+            YouWon youWon = expectMsgClass(YouWon.class);
+            assertTrue("should've won 50", youWon.equals(new YouWon(100L)));
 
             expectMsgEquals(duration("5 seconds"), PLEASE_BET);
 

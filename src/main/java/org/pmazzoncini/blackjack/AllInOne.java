@@ -12,7 +12,7 @@ import scala.concurrent.Future;
 public class AllInOne {
 
     public static void main(String[] args) {
-        ActorSystem system = ActorSystem.create("bjackServer");
+        ActorSystem system = ActorSystem.create("allInOne");
 
         ActorRef dealerManager = system.actorOf(Props.create(DealerManager.class), "John");
 
