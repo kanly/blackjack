@@ -2,7 +2,7 @@ package org.pmazzoncini.blackjack.impl.model;
 
 import static java.util.stream.Collectors.toList;
 
-import java.util.ArrayList;
+import com.google.common.collect.ImmutableList;
 import java.util.List;
 
 /**
@@ -20,29 +20,29 @@ public interface FrenchDeck {
     String CLUBS = "Clubs";
     String DIAMONDS = "Diamonds";
     String SPADES = "Spades";
-    List<String> SEEDS = new ArrayList<String>(4) {{
-        add(HEARTS);
-        add(CLUBS);
-        add(DIAMONDS);
-        add(SPADES);
-    }};
+    List<String> SEEDS = ImmutableList.of(
+        HEARTS,
+        CLUBS,
+        DIAMONDS,
+        SPADES
+    );
 
 
-    List<String> RANKS = new ArrayList<String>(13) {{
-        add(ACE);
-        add("2");
-        add("3");
-        add("4");
-        add("5");
-        add("6");
-        add("7");
-        add("8");
-        add("9");
-        add("10");
-        add(JACK);
-        add(QUEEN);
-        add(KING);
-    }};
+    List<String> RANKS = ImmutableList.of(
+        ACE,
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        JACK,
+        QUEEN,
+        KING
+    );
 
     static List<Card> newDeck() {
         return SEEDS.stream()
