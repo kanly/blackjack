@@ -11,16 +11,16 @@ import java.util.List;
  */
 public interface FrenchDeck {
 
-    public static final String ACE = "A";
-    public static final String JACK = "J";
-    public static final String QUEEN = "Q";
-    public static final String KING = "K";
+    String ACE = "A";
+    String JACK = "J";
+    String QUEEN = "Q";
+    String KING = "K";
 
-    public static final String HEARTS = "Hearts";
-    public static final String CLUBS = "Clubs";
-    public static final String DIAMONDS = "Diamonds";
-    public static final String SPADES = "Spades";
-    public static final List<String> SEEDS = new ArrayList<String>(4) {{
+    String HEARTS = "Hearts";
+    String CLUBS = "Clubs";
+    String DIAMONDS = "Diamonds";
+    String SPADES = "Spades";
+    List<String> SEEDS = new ArrayList<String>(4) {{
         add(HEARTS);
         add(CLUBS);
         add(DIAMONDS);
@@ -28,7 +28,7 @@ public interface FrenchDeck {
     }};
 
 
-    public static final List<String> RANKS = new ArrayList<String>(13) {{
+    List<String> RANKS = new ArrayList<String>(13) {{
         add(ACE);
         add("2");
         add("3");
@@ -44,7 +44,7 @@ public interface FrenchDeck {
         add(KING);
     }};
 
-    public static List<Card> newDeck() {
+    static List<Card> newDeck() {
         return SEEDS.stream()
             .flatMap(seed -> RANKS.stream().map(rank -> new Card(seed, rank)))
             .collect(toList());
