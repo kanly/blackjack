@@ -92,7 +92,7 @@ public class Game implements Serializable {
         if (score != game.score) {
             return false;
         }
-        if (gameId != null ? !gameId.equals(game.gameId) : game.gameId != null) {
+        if (!gameId.equals(game.gameId)) {
             return false;
         }
         if (gameResult != game.gameResult) {

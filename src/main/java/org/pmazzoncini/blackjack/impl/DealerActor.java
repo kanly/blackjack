@@ -227,6 +227,9 @@ public class DealerActor extends AbstractActor {
                         }
                         break;
                     case DealerPlayerContract.DealerRequest.STAND:
+
+                        log.debug("dealer {}, received a STAND message", myName);
+
                         if (request.player().equals(currentlyPlayedGame.getPlayer().getRef())) {
                             completedGames.add(currentlyPlayedGame);
                             nextPlayerTurn();
@@ -357,6 +360,7 @@ public class DealerActor extends AbstractActor {
         while (myGame.getScore() < 16) {
             Card dealerCard = draw();
             myGame.cardDrawn(dealerCard);
+            log.debug("Dealer {} drawn card [{}] for himself new score is {}", myName, dealerCard, myGame.getScore());
             faceUpDealerCardDrawn(inGamePlayers, dealerCard);
         }
     }
@@ -364,22 +368,23 @@ public class DealerActor extends AbstractActor {
     private void calculateResults() {
 
         if (myGame.getScore() > 21) {
-            completedGames.stream().forEach(this::gameWon);
+            completedGames.forEach(this::gameWon);
+        } else {
+
+            Map<GameResult, List<Game>> gameResults = completedGames.stream().collect(groupingBy(game -> {
+                if (game.getScore() > myGame.getScore()) {
+                    return WON;
+                } else if (game.getScore() == myGame.getScore()) {
+                    return TIE;
+                } else {
+                    return LOST;
+                }
+            }));
+
+            gameResults.getOrDefault(WON, EMPTY_LIST).forEach(this::gameWon);
+            gameResults.getOrDefault(LOST, EMPTY_LIST).forEach(this::gameLost);
+            gameResults.getOrDefault(TIE, EMPTY_LIST).forEach(this::gameTied);
         }
-
-        Map<GameResult, List<Game>> gameResults = completedGames.stream().collect(groupingBy(game -> {
-            if (game.getScore() > myGame.getScore()) {
-                return WON;
-            } else if (game.getScore() == myGame.getScore()) {
-                return TIE;
-            } else {
-                return LOST;
-            }
-        }));
-
-        gameResults.getOrDefault(WON, EMPTY_LIST).stream().forEach(this::gameWon);
-        gameResults.getOrDefault(LOST, EMPTY_LIST).stream().forEach(this::gameLost);
-        gameResults.getOrDefault(TIE, EMPTY_LIST).stream().forEach(this::gameTied);
     }
 
     private void addPlayer() {
